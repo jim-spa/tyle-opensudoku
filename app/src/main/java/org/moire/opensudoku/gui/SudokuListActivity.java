@@ -490,88 +490,82 @@ public class SudokuListActivity extends ListActivity {
 
 			TextView label = null;
 
-			switch (view.getId()) {
-				case R.id.sudoku_board:
-					String data = c.getString(columnIndex);
-					// TODO: still can be faster, I don't have to call initCollection and read notes
-					CellCollection cells = null;
-					;
-					try {
-						cells = CellCollection.deserialize(data);
-					} catch (Exception e) {
-						long id = c.getLong(c.getColumnIndex(SudokuColumns._ID));
-						Log.e(TAG, String.format("Exception occurred when deserializing puzzle with id %s.", id), e);
-					}
-					SudokuBoardView board = (SudokuBoardView) view;
-					board.setReadOnly(true);
-					board.setFocusable(false);
-					((SudokuBoardView) view).setCells(cells);
-					break;
-				case R.id.state:
-					label = ((TextView) view);
-					String stateString = null;
-					switch (state) {
-						case SudokuGame.GAME_STATE_COMPLETED:
-							stateString = mContext.getString(R.string.solved);
-							break;
-						case SudokuGame.GAME_STATE_PLAYING:
-							stateString = mContext.getString(R.string.playing);
-							break;
-					}
-					label.setVisibility(stateString == null ? View.GONE
-							: View.VISIBLE);
-					label.setText(stateString);
-					if (state == SudokuGame.GAME_STATE_COMPLETED) {
-						// TODO: read colors from android resources
-						label.setTextColor(Color.rgb(150, 150, 150));
-					} else {
-						label.setTextColor(Color.rgb(255, 255, 255));
-						//label.setTextColor(SudokuListActivity.this.getResources().getColor(R.));
-					}
-					break;
-				case R.id.time:
-					long time = c.getLong(columnIndex);
-					label = ((TextView) view);
-					String timeString = null;
-					if (time != 0) {
-						timeString = mGameTimeFormatter.format(time);
-					}
-					label.setVisibility(timeString == null ? View.GONE
-							: View.VISIBLE);
-					label.setText(timeString);
-					if (state == SudokuGame.GAME_STATE_COMPLETED) {
-						// TODO: read colors from android resources
-						label.setTextColor(Color.rgb(150, 150, 150));
-					} else {
-						label.setTextColor(Color.rgb(255, 255, 255));
-					}
-					break;
-				case R.id.last_played:
-					long lastPlayed = c.getLong(columnIndex);
-					label = ((TextView) view);
-					String lastPlayedString = null;
-					if (lastPlayed != 0) {
-						lastPlayedString = mContext.getString(R.string.last_played_at,
-								getDateAndTimeForHumans(lastPlayed));
-					}
-					label.setVisibility(lastPlayedString == null ? View.GONE
-							: View.VISIBLE);
-					label.setText(lastPlayedString);
-					break;
-				case R.id.created:
-					long created = c.getLong(columnIndex);
-					label = ((TextView) view);
-					String createdString = null;
-					if (created != 0) {
-						createdString = mContext.getString(R.string.created_at,
-								getDateAndTimeForHumans(created));
-					}
-					// TODO: when GONE, note is not correctly aligned below last_played
-					label.setVisibility(createdString == null ? View.GONE
-							: View.VISIBLE);
-					label.setText(createdString);
-					break;
-				case R.id.note:
+			if (view.getId() == R.id.sudoku_board) {
+				String data = c.getString(columnIndex);
+				// TODO: still can be faster, I don't have to call initCollection and read notes
+				CellCollection cells = null;
+				;
+				try {
+					cells = CellCollection.deserialize(data);
+				} catch (Exception e) {
+					long id = c.getLong(c.getColumnIndex(SudokuColumns._ID));
+					Log.e(TAG, String.format("Exception occurred when deserializing puzzle with id %s.", id), e);
+				}
+				SudokuBoardView board = (SudokuBoardView) view;
+				board.setReadOnly(true);
+				board.setFocusable(false);
+				((SudokuBoardView) view).setCells(cells);
+			} else if (view.getId() == R.id.state) {
+				label = ((TextView) view);
+				String stateString = null;
+				switch (state) {
+					case SudokuGame.GAME_STATE_COMPLETED:
+						stateString = mContext.getString(R.string.solved);
+						break;
+					case SudokuGame.GAME_STATE_PLAYING:
+						stateString = mContext.getString(R.string.playing);
+						break;
+				}
+				label.setVisibility(stateString == null ? View.GONE
+						: View.VISIBLE);
+				label.setText(stateString);
+				if (state == SudokuGame.GAME_STATE_COMPLETED) {
+					// TODO: read colors from android resources
+					label.setTextColor(Color.rgb(150, 150, 150));
+				} else {
+					label.setTextColor(Color.rgb(255, 255, 255));
+					//label.setTextColor(SudokuListActivity.this.getResources().getColor(R.));
+				}
+			} else if (view.getId() == R.id.time) {
+				long time = c.getLong(columnIndex);
+				label = ((TextView) view);
+				String timeString = null;
+				if (time != 0) {
+					timeString = mGameTimeFormatter.format(time);
+				}
+				label.setVisibility(timeString == null ? View.GONE
+						: View.VISIBLE);
+				label.setText(timeString);
+				if (state == SudokuGame.GAME_STATE_COMPLETED) {
+					// TODO: read colors from android resources
+					label.setTextColor(Color.rgb(150, 150, 150));
+				} else {
+					label.setTextColor(Color.rgb(255, 255, 255));
+				}
+			} else if (view.getId() == R.id.last_played) {
+				long lastPlayed = c.getLong(columnIndex);
+				label = ((TextView) view);
+				String lastPlayedString = null;
+				if (lastPlayed != 0) {
+					lastPlayedString = mContext.getString(R.string.last_played_at,
+							getDateAndTimeForHumans(lastPlayed));
+				}
+				label.setVisibility(lastPlayedString == null ? View.GONE
+						: View.VISIBLE);
+				label.setText(lastPlayedString);
+			} else if (view.getId() ==  R.id.created) {
+				long created = c.getLong(columnIndex);
+				label = ((TextView) view);
+				String createdString = null;
+				if (created != 0) {
+					createdString = mContext.getString(R.string.created_at,
+							getDateAndTimeForHumans(created));
+				}
+				// TODO: when GONE, note is not correctly aligned below last_played
+				label.setVisibility(createdString == null ? View.GONE
+						: View.VISIBLE);
+				label.setText(createdString);
+			} else if (view.getId() == R.id.note) {
 					String note = c.getString(columnIndex);
 					label = ((TextView) view);
 					if (note == null || note.trim() == "") {
@@ -583,7 +577,6 @@ public class SudokuListActivity extends ListActivity {
 							.setVisibility((note == null || note.trim().equals("")) ? View.GONE
 									: View.VISIBLE);
 					label.setText(note);
-					break;
 			}
 
 			return true;

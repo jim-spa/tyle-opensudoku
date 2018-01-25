@@ -374,11 +374,9 @@ public class FolderListActivity extends ListActivity {
 		@Override
 		public boolean setViewValue(View view, Cursor c, int columnIndex) {
 
-			switch (view.getId()) {
-				case R.id.name:
-					((TextView) view).setText(c.getString(columnIndex));
-					break;
-				case R.id.detail:
+			if (view.getId() == R.id.name) {
+				((TextView) view).setText(c.getString(columnIndex));
+			} else if (view.getId() == R.id.detail) {
 					final long folderID = c.getLong(columnIndex);
 					final TextView detailView = (TextView) view;
 					detailView.setText(mContext.getString(R.string.loading));

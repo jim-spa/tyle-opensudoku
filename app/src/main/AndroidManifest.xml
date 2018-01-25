@@ -5,24 +5,23 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/Theme" >
-        <activity android:name=".gui.FolderListActivity" android:label="@string/app_name">
+        android:label="@string/app_name">
+        <activity android:name="org.moire.opensudoku.gui.FolderListActivity" android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".gui.SudokuListActivity" android:label="@string/app_name">
+        <activity android:name="org.moire.opensudoku.gui.SudokuListActivity" android:label="@string/app_name">
         </activity>
-        <activity android:name=".gui.SudokuEditActivity" android:label="@string/edit_sudoku">
+        <activity android:name="org.moire.opensudoku.gui.SudokuEditActivity" android:label="@string/edit_sudoku">
             <intent-filter>
                 <action android:name="android.intent.action.INSERT"/>
                 <action android:name="android.intent.action.EDIT"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity android:name=".gui.FileImportActivity"
+        <activity android:name="org.moire.opensudoku.gui.FileImportActivity"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Dialog">
             <intent-filter>
@@ -36,14 +35,14 @@
             </intent-filter>
         </activity>
         <!-- This activity is here to keep backward compatibility, use SudokuImportActivity instead. -->
-        <activity android:name=".gui.ImportSudokuActivity">
+        <activity android:name="org.moire.opensudoku.gui.ImportSudokuActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
             </intent-filter>
         </activity>
-        <activity android:name=".gui.SudokuImportActivity"
+        <activity android:name="org.moire.opensudoku.gui.SudokuImportActivity"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Dialog">
             <intent-filter>
@@ -53,16 +52,16 @@
                 <data android:mimeType="application/x-opensudoku"/>
             </intent-filter>
         </activity>
-        <activity android:name=".gui.SudokuExportActivity"
+        <activity android:name="org.moire.opensudoku.gui.SudokuExportActivity"
             android:label="@string/app_name">
         </activity>
-        <activity android:name=".gui.SudokuPlayActivity"
+        <activity android:name="org.moire.opensudoku.gui.SudokuPlayActivity"
             android:label="@string/app_name">
         </activity>
-        <activity android:name=".gui.GameSettingsActivity"
+        <activity android:name="org.moire.opensudoku.gui.GameSettingsActivity"
             android:label="@string/game_settings">
         </activity>
-        <activity android:name=".gui.FileListActivity"
+        <activity android:name="org.moire.opensudoku.gui.FileListActivity"
             android:label="@string/app_name">
         </activity>
         </application>

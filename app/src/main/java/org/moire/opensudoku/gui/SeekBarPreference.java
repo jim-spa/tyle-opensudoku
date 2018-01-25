@@ -57,8 +57,8 @@ public class SeekBarPreference extends DialogPreference {
 	private SeekBar mSeekBar;
 	private TextView mValueLabel;
 
-	private int mMin;
-	private int mMax;
+	private int mMin = 0;
+	private int mMax = 30;
 	private int mValue;
 	private String mValueFormat;
 
@@ -74,10 +74,10 @@ public class SeekBarPreference extends DialogPreference {
 
 		TypedArray a =
 				context.obtainStyledAttributes(attrs, R.styleable.SeekBarPreference);
-		setMin(a.getInt(R.styleable.SeekBarPreference_min, mMin));
-		setMax(a.getInt(R.styleable.SeekBarPreference_max, mMax));
+		setMin(mMin);
+		setMax(mMax);
 		setValue(a.getInt(R.styleable.SeekBarPreference_value, mValue));
-		setValueFormat(a.getString(R.styleable.SeekBarPreference_valueFormat));
+		setValueFormat("%s pixels");
 
 		a.recycle();
 	}

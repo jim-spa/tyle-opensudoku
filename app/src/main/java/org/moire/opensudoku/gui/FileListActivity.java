@@ -209,8 +209,7 @@ public class FileListActivity extends ListActivity {
 		@Override
 		public boolean setViewValue(View view, Object data,
 									String textRepresentation) {
-			switch (view.getId()) {
-				case R.id.detail:
+			if (view.getId() == R.id.detail) {
 					if (data == null) {
 						final TextView detailView = (TextView) view;
 						detailView.setVisibility(View.INVISIBLE);

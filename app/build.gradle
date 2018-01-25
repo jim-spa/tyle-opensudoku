@@ -1,11 +1,10 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 22
     buildToolsVersion '26.0.2'
 
     defaultConfig {
-        applicationId "org.moire.opensudoku"
         minSdkVersion 8
         targetSdkVersion 22
         versionCode 20180117
@@ -14,7 +13,6 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
