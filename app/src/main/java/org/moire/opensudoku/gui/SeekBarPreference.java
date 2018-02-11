@@ -60,7 +60,7 @@ public class SeekBarPreference extends DialogPreference {
 	private int mMin = 0;
 	private int mMax = 30;
 	private int mValue;
-	private String mValueFormat;
+	private String mValueFormat = "%s pixels";
 
 	public SeekBarPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);

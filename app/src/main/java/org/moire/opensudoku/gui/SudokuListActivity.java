@@ -553,7 +553,7 @@ public class SudokuListActivity extends ListActivity {
 				label.setVisibility(lastPlayedString == null ? View.GONE
 						: View.VISIBLE);
 				label.setText(lastPlayedString);
-			} else if (view.getId() ==  R.id.created) {
+			} else if (view.getId() == R.id.created) {
 				long created = c.getLong(columnIndex);
 				label = ((TextView) view);
 				String createdString = null;
