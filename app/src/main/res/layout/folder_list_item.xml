@@ -6,14 +6,34 @@
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/name"
-        android:text="name"
-        android:layout_width="fill_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:paddingLeft="5dip"
-        android:singleLine="true" />
+        android:orientation="horizontal"
+        android:weightSum="10">
+
+        <TextView
+            android:id="@+id/name"
+            android:text="name"
+            android:layout_width="0dp"
+            android:layout_weight="5"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:paddingLeft="5dip"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/earnings"
+            android:text="earn x-y tyle"
+            android:layout_width="0dp"
+            android:layout_weight="5"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:paddingRight="5dip"
+            android:singleLine="true" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/detail"

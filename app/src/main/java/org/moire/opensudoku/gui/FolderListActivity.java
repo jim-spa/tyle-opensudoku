@@ -156,8 +156,8 @@ public class FolderListActivity extends AppCompatActivity {
         mCursor = mDatabase.getFolderList();
         startManagingCursor(mCursor);
         adapter = new SimpleCursorAdapter(this, R.layout.folder_list_item,
-                mCursor, new String[]{FolderColumns.NAME, FolderColumns._ID},
-                new int[]{R.id.name, R.id.detail});
+                mCursor, new String[]{FolderColumns.NAME, FolderColumns.NAME, FolderColumns._ID},
+                new int[]{R.id.name, R.id.earnings, R.id.detail});
         mFolderListBinder = new FolderListViewBinder(this);
         adapter.setViewBinder(mFolderListBinder);
 
@@ -469,6 +469,8 @@ public class FolderListActivity extends AppCompatActivity {
 
             if (view.getId() == R.id.name) {
                 ((TextView) view).setText(c.getString(columnIndex));
+            } else if (view.getId() == R.id.earnings) {
+                ((TextView) view).setText("Earn 1-3 Tyle");
             } else if (view.getId() == R.id.detail) {
                 final long folderID = c.getLong(columnIndex);
                 final TextView detailView = (TextView) view;
