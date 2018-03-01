@@ -9,7 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:weightSum="10">
 
         <org.moire.opensudoku.gui.SudokuBoardView
             android:id="@+id/sudoku_board"
@@ -18,12 +19,18 @@
             android:layout_weight="6"
             android:keepScreenOn="true" />
 
-        <org.walleth.ui.ValueView
-            android:id="@+id/value_view"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical" />
+            android:layout_weight="2">
+
+            <org.walleth.ui.ValueView
+                android:id="@+id/value_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true" />
+
+        </RelativeLayout>
 
         <org.moire.opensudoku.gui.inputmethod.IMControlPanel
             android:id="@+id/input_methods"

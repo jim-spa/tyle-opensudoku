@@ -140,10 +140,10 @@ public class SudokuPlayActivity extends FragmentActivity {
         mRootLayout = (ViewGroup) findViewById(R.id.root_layout);
         mSudokuBoard = (SudokuBoardView) findViewById(R.id.sudoku_board);
         mTimeLabel = (TextView) findViewById(R.id.time_label);
-        value_view = (ValueView) mRootLayout.findViewById(R.id.value_view);
+        value_view = (ValueView) findViewById(R.id.value_view);
 
-        currentTokenProvider = new CurrentTokenProvider(((OpenSudoku) this.getApplication()).getNetworkDefinitionProvider());
-        currentAddressProvider = new CurrentAddressProvider(((OpenSudoku) this.getApplication()).getSettings());
+        currentTokenProvider = ((OpenSudoku) this.getApplication()).getCurrentTokenProvider();
+        currentAddressProvider = ((OpenSudoku) this.getApplication()).getCurrentAddressProvider();
         networkDefinitionProvider = ((OpenSudoku) this.getApplication()).getNetworkDefinitionProvider();
         appDatabase = ((OpenSudoku) this.getApplication()).getAppDatabase();
 
@@ -566,7 +566,7 @@ public class SudokuPlayActivity extends FragmentActivity {
     };
 
     private void setCurrentBalanceObserver() {
-        if (currentAddressProvider.getValue() != null) {
+        if (currentAddressProvider.getCurrent() != null) {
             if (balanceLiveData != null) {
                 balanceLiveData.removeObserver(balanceObserver);
             }
