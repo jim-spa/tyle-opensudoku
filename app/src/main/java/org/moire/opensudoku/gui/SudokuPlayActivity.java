@@ -22,8 +22,6 @@ package org.moire.opensudoku.gui;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,7 +29,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.view.Display;
 import android.view.Menu;
@@ -54,14 +51,7 @@ import org.moire.opensudoku.gui.inputmethod.IMNumpad;
 import org.moire.opensudoku.gui.inputmethod.IMPopup;
 import org.moire.opensudoku.gui.inputmethod.IMSingleNumber;
 import org.moire.opensudoku.utils.AndroidUtils;
-import org.walleth.data.AppDatabase;
-import org.walleth.data.balances.Balance;
-import org.walleth.data.networks.CurrentAddressProvider;
-import org.walleth.data.networks.NetworkDefinitionProvider;
-import org.walleth.data.tokens.CurrentTokenProvider;
 import org.walleth.ui.ValueView;
-
-import static java.math.BigDecimal.ZERO;
 
 /*
  */
@@ -88,12 +78,6 @@ public class SudokuPlayActivity extends FragmentActivity {
 
     private long mSudokuGameID;
     private SudokuGame mSudokuGame;
-    private ValueView value_view;
-    private CurrentTokenProvider currentTokenProvider;
-    private CurrentAddressProvider currentAddressProvider;
-    private NetworkDefinitionProvider networkDefinitionProvider;
-    private LiveData<Balance> balanceLiveData = null;
-    private AppDatabase appDatabase = null;
 
     private SudokuDatabase mDatabase;
 
@@ -137,23 +121,13 @@ public class SudokuPlayActivity extends FragmentActivity {
 
         setContentView(R.layout.sudoku_play);
 
-        mRootLayout = (ViewGroup) findViewById(R.id.root_layout);
-        mSudokuBoard = (SudokuBoardView) findViewById(R.id.sudoku_board);
-        mTimeLabel = (TextView) findViewById(R.id.time_label);
-        value_view = (ValueView) findViewById(R.id.value_view);
+        mRootLayout = findViewById(R.id.root_layout);
+        mSudokuBoard = findViewById(R.id.sudoku_board);
+        mTimeLabel = findViewById(R.id.time_label);
+        ValueView value_view = findViewById(R.id.value_view);
 
-        currentTokenProvider = ((OpenSudoku) this.getApplication()).getCurrentTokenProvider();
-        currentAddressProvider = ((OpenSudoku) this.getApplication()).getCurrentAddressProvider();
-        networkDefinitionProvider = ((OpenSudoku) this.getApplication()).getNetworkDefinitionProvider();
-        appDatabase = ((OpenSudoku) this.getApplication()).getAppDatabase();
-
-        networkDefinitionProvider.observe(this, Observer -> {
-                setCurrentBalanceObserver();
-        });
-
-        currentAddressProvider.observe(this, Observer -> {
-                setCurrentBalanceObserver();
-        });
+        ((OpenSudoku) this.getApplication()).setCurrentBalanceObserver(this, value_view);
+        ((OpenSudoku) this.getApplication()).installTransactionObservers(this);
 
         mDatabase = new SudokuDatabase(getApplicationContext());
         mHintsQueue = new HintsQueue(this);
@@ -188,7 +162,7 @@ public class SudokuPlayActivity extends FragmentActivity {
 
         mHintsQueue.showOneTimeHint("welcome", R.string.welcome, R.string.first_run_hint);
 
-        mIMControlPanel = (IMControlPanel) findViewById(R.id.input_methods);
+        mIMControlPanel = findViewById(R.id.input_methods);
         mIMControlPanel.initialize(mSudokuBoard, mSudokuGame, mHintsQueue);
 
         mIMControlPanelStatePersister = new IMControlPanelStatePersister(this);
@@ -249,7 +223,6 @@ public class SudokuPlayActivity extends FragmentActivity {
         mSudokuBoard.invokeOnCellSelected();
 
         updateTime();
-        setCurrentBalanceObserver();
     }
 
     @Override
@@ -260,15 +233,11 @@ public class SudokuPlayActivity extends FragmentActivity {
             // FIXME: When activity is resumed, title isn't sometimes hidden properly (there is black
             // empty space at the top of the screen). This is desperate workaround.
             if (mFullScreen) {
-                mGuiHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                        mRootLayout.requestLayout();
-                    }
+                mGuiHandler.postDelayed(() -> {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                    mRootLayout.requestLayout();
                 }, 1000);
             }
-
         }
     }
 
@@ -552,28 +521,6 @@ public class SudokuPlayActivity extends FragmentActivity {
             return false;
         }
 
-    }
-
-    private Observer balanceObserver = new Observer<Balance>() {
-        @Override
-        public void onChanged(@Nullable Balance balance) {
-            if (balance != null) {
-                value_view.setValue(balance.getBalance(), currentTokenProvider.getCurrentToken());
-            } else {
-                value_view.setValue(ZERO.toBigInteger(), currentTokenProvider.getCurrentToken());
-            }
-        }
-    };
-
-    private void setCurrentBalanceObserver() {
-        if (currentAddressProvider.getCurrent() != null) {
-            if (balanceLiveData != null) {
-                balanceLiveData.removeObserver(balanceObserver);
-            }
-            balanceLiveData = appDatabase.getBalances().getBalanceLive(currentAddressProvider.getCurrent(),
-                    currentTokenProvider.getCurrentToken().getAddress(), networkDefinitionProvider.getCurrent().getChain());
-            balanceLiveData.observe(this, balanceObserver);
-        }
     }
 
 }

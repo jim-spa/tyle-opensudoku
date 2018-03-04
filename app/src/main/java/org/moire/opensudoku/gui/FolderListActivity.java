@@ -22,8 +22,6 @@ package org.moire.opensudoku.gui;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -31,7 +29,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -40,15 +37,12 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.SimpleCursorAdapter.ViewBinder;
 import android.widget.TextView;
 
-import org.kethereum.model.Address;
-import org.kethereum.model.ChainDefinition;
 import org.moire.opensudoku.OpenSudoku;
 import org.moire.opensudoku.R;
 import org.moire.opensudoku.db.FolderColumns;
@@ -56,18 +50,7 @@ import org.moire.opensudoku.db.SudokuDatabase;
 import org.moire.opensudoku.game.FolderInfo;
 import org.moire.opensudoku.gui.FolderDetailLoader.FolderDetailCallback;
 import org.moire.opensudoku.utils.AndroidUtils;
-import org.walleth.data.AppDatabase;
-import org.walleth.data.balances.Balance;
-import org.walleth.data.networks.CurrentAddressProvider;
-import org.walleth.data.networks.NetworkDefinitionProvider;
-import org.walleth.data.tokens.CurrentTokenProvider;
-import org.walleth.data.transactions.TransactionEntity;
 import org.walleth.ui.ValueView;
-
-import java.util.List;
-
-import static java.math.BigDecimal.ZERO;
-import static org.threeten.bp.zone.ZoneRulesProvider.refresh;
 
 /**
  * List of puzzle's folder. This activity also serves as root activity of application.
@@ -101,13 +84,6 @@ public class FolderListActivity extends AppCompatActivity {
     private long mRenameFolderID;
     private long mDeleteFolderID;
 
-    private ValueView value_view;
-    private CurrentTokenProvider currentTokenProvider;
-    private CurrentAddressProvider currentAddressProvider;
-    private NetworkDefinitionProvider networkDefinitionProvider;
-    private LiveData<Balance> balanceLiveData = null;
-    private AppDatabase appDatabase = null;
-
     ListView listView;
     SimpleCursorAdapter adapter;
 
@@ -116,41 +92,23 @@ public class FolderListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.folder_list);
-        View getMorePuzzles = (View) findViewById(R.id.get_more_puzzles);
+        View getMorePuzzles = findViewById(R.id.get_more_puzzles);
 
         setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
         // Inform the list we provide context menus for items
-        listView = (ListView) findViewById(R.id.list_view);
+        listView = findViewById(R.id.list_view);
         listView.setOnCreateContextMenuListener(this);
 
-        getMorePuzzles.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        getMorePuzzles.setOnClickListener(v -> {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://opensudoku.moire.org"));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
-            }
-        });
+            });
 
-        value_view = (ValueView) findViewById(R.id.value_view);
+        ValueView value_view = findViewById(R.id.value_view);
 
-        currentTokenProvider = ((OpenSudoku) this.getApplication()).getAppCurrentTokenProvider();
-        currentAddressProvider = ((OpenSudoku) this.getApplication()).getAppCurrentAddressProvider();
-        networkDefinitionProvider = ((OpenSudoku) this.getApplication()).getNetworkDefinitionProvider();
-        appDatabase = ((OpenSudoku) this.getApplication()).getAppDatabase();
-
-        networkDefinitionProvider.observe(this, Observer -> {
-            setCurrentBalanceObserver();
-            installTransactionObservers();
-        });
-
-        currentAddressProvider.observe(this, Observer -> {
-            installTransactionObservers();
-        });
-
-        currentAddressProvider.observe(this, Observer -> {
-            setCurrentBalanceObserver();
-        });
+        ((OpenSudoku) this.getApplication()).setCurrentBalanceObserver(this, value_view);
+        ((OpenSudoku) this.getApplication()).installTransactionObservers(this);
 
         mDatabase = new SudokuDatabase(getApplicationContext());
         mCursor = mDatabase.getFolderList();
@@ -161,55 +119,17 @@ public class FolderListActivity extends AppCompatActivity {
         mFolderListBinder = new FolderListViewBinder(this);
         adapter.setViewBinder(mFolderListBinder);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        listView.setOnItemClickListener((parent, view, position, id) -> {
                 Intent i = new Intent(FolderListActivity.this, SudokuListActivity.class);
                 i.putExtra(SudokuListActivity.EXTRA_FOLDER_ID, id);
                 startActivity(i);
-            }
-        });
+            });
 
         listView.setAdapter(adapter);
 
         // show changelog on first run
         Changelog changelog = new Changelog(this);
         changelog.showOnFirstRun();
-    }
-
-    private Observer<List<TransactionEntity>> incomingTransactionsObserver = (transactionEntities -> {
-        if (transactionEntities != null) {
-            refresh();
-        }
-    });
-
-    private Observer<List<TransactionEntity>> outgoingTransactionsObserver = (transactionEntities -> {
-        if (transactionEntities != null) {
-            refresh();
-        }
-    });
-
-    private LiveData<List<TransactionEntity>> incomingTransactionsForAddress = null;
-    private LiveData<List<TransactionEntity>> outgoingTransactionsForAddress = null;
-
-
-    private void installTransactionObservers() {
-
-        if (incomingTransactionsForAddress != null)
-            incomingTransactionsForAddress.removeObserver(incomingTransactionsObserver);
-        if (outgoingTransactionsForAddress != null)
-            outgoingTransactionsForAddress.removeObserver(outgoingTransactionsObserver);
-
-        if (currentAddressProvider.getValue() == null) {
-            Address currentAddress = currentAddressProvider.getCurrent();
-            ChainDefinition currentChain = networkDefinitionProvider.getCurrent().getChain();
-            incomingTransactionsForAddress = appDatabase.getTransactions().getIncomingTransactionsForAddressOnChainOrdered(currentAddress, currentChain);
-            outgoingTransactionsForAddress = appDatabase.getTransactions().getOutgoingTransactionsForAddressOnChainOrdered(currentAddress, currentChain);
-
-            incomingTransactionsForAddress.observe(this, incomingTransactionsObserver);
-            outgoingTransactionsForAddress.observe(this, outgoingTransactionsObserver);
-
-        }
     }
 
     @Override
@@ -232,12 +152,6 @@ public class FolderListActivity extends AppCompatActivity {
 
         outState.putLong("mRenameFolderID", mRenameFolderID);
         outState.putLong("mDeleteFolderID", mDeleteFolderID);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setCurrentBalanceObserver();
     }
 
     @Override
@@ -487,28 +401,6 @@ public class FolderListActivity extends AppCompatActivity {
 
         public void destroy() {
             mDetailLoader.destroy();
-        }
-    }
-
-    private Observer balanceObserver = new Observer<Balance>() {
-        @Override
-        public void onChanged(@Nullable Balance balance) {
-            if (balance != null) {
-                value_view.setValue(balance.getBalance(), currentTokenProvider.getCurrentToken());
-            } else {
-                value_view.setValue(ZERO.toBigInteger(), currentTokenProvider.getCurrentToken());
-            }
-        }
-    };
-
-    private void setCurrentBalanceObserver() {
-        if (currentAddressProvider.getCurrent() != null) {
-            if (balanceLiveData != null) {
-                balanceLiveData.removeObserver(balanceObserver);
-            }
-            balanceLiveData = appDatabase.getBalances().getBalanceLive(currentAddressProvider.getCurrent(),
-                    currentTokenProvider.getCurrentToken().getAddress(), networkDefinitionProvider.getCurrent().getChain());
-            balanceLiveData.observe(this, balanceObserver);
         }
     }
 
