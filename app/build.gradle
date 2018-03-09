@@ -44,7 +44,9 @@ repositories {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "org.walleth:WALLETH-0.29-withGeth-noFirebase-forFDroid-debug@aar"
+    implementation "org.walleth:WALLETH-0.29-withGeth-noFirebase-forFDroid-debug@aar" {
+        transitive = true;
+    }
     implementation fileTree(include: ['*.jar'], dir: '/cryptosecure/studio/tyle-kethereum/*/build/libs')
 
     implementation "org.ethereum:geth:1.7.3"
