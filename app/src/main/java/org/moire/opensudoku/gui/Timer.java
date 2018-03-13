@@ -39,6 +39,7 @@ import android.os.SystemClock;
 /**
  * This class implements a simple periodic timer.
  */
+// TODO abstract class is only used by one other class.  Look at moving functionality to other class and removing
 abstract class Timer
 		extends Handler {
 

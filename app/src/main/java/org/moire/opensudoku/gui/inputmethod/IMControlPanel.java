@@ -45,7 +45,6 @@ public class IMControlPanel extends LinearLayout {
 	public static final int INPUT_METHOD_SINGLE_NUMBER = 1;
 	public static final int INPUT_METHOD_NUMPAD = 2;
 
-	private Context mContext;
 	private SudokuBoardView mBoard;
 	private SudokuGame mGame;
 	private HintsQueue mHintsQueue;
@@ -55,12 +54,10 @@ public class IMControlPanel extends LinearLayout {
 
 	public IMControlPanel(Context context) {
 		super(context);
-		mContext = context;
 	}
 
 	public IMControlPanel(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		mContext = context;
 	}
 
 	public void initialize(SudokuBoardView board, SudokuGame game, HintsQueue hintsQueue) {
@@ -222,7 +219,7 @@ public class IMControlPanel extends LinearLayout {
 	}
 
 	private void addInputMethod(int methodIndex, InputMethod im) {
-		im.initialize(mContext, this, mGame, mBoard, mHintsQueue);
+		im.initialize(getContext(), this, mGame, mBoard, mHintsQueue);
 		mInputMethods.add(methodIndex, im);
 	}
 
