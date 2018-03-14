@@ -31,42 +31,24 @@ import org.moire.opensudoku.R;
 import org.moire.opensudoku.game.Cell;
 import org.moire.opensudoku.game.CellCollection;
 import org.moire.opensudoku.game.CellNote;
+import org.moire.opensudoku.game.SudokuGame;
+import org.moire.opensudoku.gui.HintsQueue;
+import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.inputmethod.IMPopupDialog.OnNoteEditListener;
 import org.moire.opensudoku.gui.inputmethod.IMPopupDialog.OnNumberEditListener;
 
 public class IMPopup extends InputMethod {
 
-	private boolean mHighlightCompletedValues = true;
-	private boolean mShowNumberTotals = false;
-
 	private IMPopupDialog mEditCellDialog;
 	private Cell mSelectedCell;
 
-	public boolean getHighlightCompletedValues() {
-		return mHighlightCompletedValues;
-	}
-
-	/**
-	 * If set to true, buttons for numbers, which occur in {@link CellCollection}
-	 * more than {@link CellCollection#SUDOKU_SIZE}-times, will be highlighted.
-	 *
-	 * @param highlightCompletedValues
-	 */
-	public void setHighlightCompletedValues(boolean highlightCompletedValues) {
-		mHighlightCompletedValues = highlightCompletedValues;
-	}
-
-	public boolean getShowNumberTotals() {
-		return mShowNumberTotals;
-	}
-
-	public void setShowNumberTotals(boolean showNumberTotals) {
-		mShowNumberTotals = showNumberTotals;
+	IMPopup(Context context, SudokuBoardView sudokuBoardView, SudokuGame sudokuGame, HintsQueue hintsQueue) {
+		super(context, sudokuBoardView, sudokuGame, hintsQueue);
 	}
 
 	private void ensureEditCellDialog() {
 		if (mEditCellDialog == null) {
-			mEditCellDialog = new IMPopupDialog(mContext);
+			mEditCellDialog = new IMPopupDialog(getContext());
 			mEditCellDialog.setOnNumberEditListener(mOnNumberEditListener);
 			mEditCellDialog.setOnNoteEditListener(mOnNoteEditListener);
 			mEditCellDialog.setOnDismissListener(mOnPopupDismissedListener);
@@ -76,16 +58,16 @@ public class IMPopup extends InputMethod {
 
 	@Override
 	protected void onActivated() {
-		mBoard.setAutoHideTouchedCellHint(false);
+		getSudokuBoardView().setAutoHideTouchedCellHint(false);
 	}
 
 	@Override
 	protected void onDeactivated() {
-		mBoard.setAutoHideTouchedCellHint(true);
+		getSudokuBoardView().setAutoHideTouchedCellHint(true);
 	}
 
 	@Override
-	protected void onCellTapped(Cell cell) {
+	public void onCellTapped(Cell cell) {
 		mSelectedCell = cell;
 		if (cell.isEditable()) {
 			ensureEditCellDialog();
@@ -95,10 +77,10 @@ public class IMPopup extends InputMethod {
 			mEditCellDialog.updateNote(cell.getNote().getNotedNumbers());
 
 			Map<Integer, Integer> valuesUseCount = null;
-			if (mHighlightCompletedValues || mShowNumberTotals)
-				valuesUseCount = mGame.getCells().getValuesUseCount();
+			if (isCompletedValuesHighlighted() || isNumberTotalsShown())
+				valuesUseCount = getSudokuGame().getCells().getValuesUseCount();
 
-			if (mHighlightCompletedValues) {
+			if (isCompletedValuesHighlighted()) {
 				for (Map.Entry<Integer, Integer> entry : valuesUseCount.entrySet()) {
 					if (entry.getValue() >= CellCollection.SUDOKU_SIZE) {
 						mEditCellDialog.highlightNumber(entry.getKey());
@@ -106,14 +88,14 @@ public class IMPopup extends InputMethod {
 				}
 			}
 
-			if (mShowNumberTotals) {
+			if (isNumberTotalsShown()) {
 				for (Map.Entry<Integer, Integer> entry : valuesUseCount.entrySet()) {
 					mEditCellDialog.setValueCount(entry.getKey(), entry.getValue());
 				}
 			}
 			mEditCellDialog.show();
 		} else {
-			mBoard.hideTouchedCellHint();
+			getSudokuBoardView().hideTouchedCellHint();
 		}
 	}
 
@@ -137,12 +119,12 @@ public class IMPopup extends InputMethod {
 
 	@Override
 	public String getAbbrName() {
-		return mContext.getString(R.string.popup_abbr);
+		return getContext().getString(R.string.popup_abbr);
 	}
 
 	@Override
 	protected View createControlPanelView() {
-		LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		return inflater.inflate(R.layout.im_popup, null);
 	}
 
@@ -153,7 +135,7 @@ public class IMPopup extends InputMethod {
 		@Override
 		public boolean onNumberEdit(int number) {
 			if (number != -1 && mSelectedCell != null) {
-				mGame.setCellValue(mSelectedCell, number);
+				getSudokuGame().setCellValue(mSelectedCell, number);
 			}
 			return true;
 		}
@@ -166,7 +148,7 @@ public class IMPopup extends InputMethod {
 		@Override
 		public boolean onNoteEdit(Integer[] numbers) {
 			if (mSelectedCell != null) {
-				mGame.setCellNote(mSelectedCell, CellNote.fromIntArray(numbers));
+				getSudokuGame().setCellNote(mSelectedCell, CellNote.fromIntArray(numbers));
 			}
 			return true;
 		}
@@ -179,7 +161,7 @@ public class IMPopup extends InputMethod {
 
 		@Override
 		public void onDismiss(DialogInterface dialog) {
-			mBoard.hideTouchedCellHint();
+			getSudokuBoardView().hideTouchedCellHint();
 		}
 	};
 

@@ -48,14 +48,14 @@ import org.moire.opensudoku.game.SudokuGame.OnPuzzleSolvedListener;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanel;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister;
 import org.moire.opensudoku.gui.inputmethod.IMNumpad;
-import org.moire.opensudoku.gui.inputmethod.IMPopup;
 import org.moire.opensudoku.gui.inputmethod.IMSingleNumber;
+import org.moire.opensudoku.gui.inputmethod.InputMethod;
 import org.moire.opensudoku.utils.AndroidUtils;
 import org.walleth.ui.ValueView;
 
 /*
  */
-public class SudokuPlayActivity extends FragmentActivity {
+public class SudokuPlayActivity extends FragmentActivity implements SudokuBoardView.OnCellTappedListener, SudokuBoardView.OnCellSelectedListener {
 
     public static final String EXTRA_SUDOKU_ID = "sudoku_id";
 
@@ -87,11 +87,8 @@ public class SudokuPlayActivity extends FragmentActivity {
     private SudokuBoardView mSudokuBoard;
     private TextView mTimeLabel;
 
-    private IMControlPanel mIMControlPanel;
+    private IMControlPanel imControlPanel;
     private IMControlPanelStatePersister mIMControlPanelStatePersister;
-    private IMPopup mIMPopup;
-    private IMSingleNumber mIMSingleNumber;
-    private IMNumpad mIMNumpad;
 
     private boolean mShowTime = true;
     private GameTimer mGameTimer;
@@ -162,14 +159,10 @@ public class SudokuPlayActivity extends FragmentActivity {
 
         mHintsQueue.showOneTimeHint("welcome", R.string.welcome, R.string.first_run_hint);
 
-        mIMControlPanel = findViewById(R.id.input_methods);
-        mIMControlPanel.initialize(mSudokuBoard, mSudokuGame, mHintsQueue);
+        imControlPanel = findViewById(R.id.input_methods);
+        imControlPanel.init(this, mSudokuBoard, mSudokuGame, mHintsQueue);
 
         mIMControlPanelStatePersister = new IMControlPanelStatePersister(this);
-
-        mIMPopup = mIMControlPanel.getInputMethod(IMControlPanel.INPUT_METHOD_POPUP);
-        mIMSingleNumber = mIMControlPanel.getInputMethod(IMControlPanel.INPUT_METHOD_SINGLE_NUMBER);
-        mIMNumpad = mIMControlPanel.getInputMethod(IMControlPanel.INPUT_METHOD_NUMPAD);
 
         Cell cell = mSudokuGame.getLastChangedCell();
         if (cell != null)
@@ -204,22 +197,36 @@ public class SudokuPlayActivity extends FragmentActivity {
         }
         mTimeLabel.setVisibility(mFullScreen && mShowTime ? View.VISIBLE : View.GONE);
 
-        mIMPopup.setEnabled(gameSettings.getBoolean("im_popup", true));
-        mIMSingleNumber.setEnabled(gameSettings.getBoolean("im_single_number", true));
-        mIMNumpad.setEnabled(gameSettings.getBoolean("im_numpad", true));
-        mIMNumpad.setMoveCellSelectionOnPress(gameSettings.getBoolean("im_numpad_move_right", false));
-        mIMPopup.setHighlightCompletedValues(gameSettings.getBoolean("highlight_completed_values", true));
-        mIMPopup.setShowNumberTotals(gameSettings.getBoolean("show_number_totals", false));
-        mIMSingleNumber.setHighlightCompletedValues(gameSettings.getBoolean("highlight_completed_values", true));
-        mIMSingleNumber.setShowNumberTotals(gameSettings.getBoolean("show_number_totals", false));
-        mIMSingleNumber.setBidirectionalSelection(gameSettings.getBoolean("bidirectional_selection", true));
-        mIMSingleNumber.setHighlightSimilar(gameSettings.getBoolean("highlight_similar", true));
-        mIMSingleNumber.setmOnSelectedNumberChangedListener(onSelectedNumberChangedListener);
-        mIMNumpad.setHighlightCompletedValues(gameSettings.getBoolean("highlight_completed_values", true));
-        mIMNumpad.setShowNumberTotals(gameSettings.getBoolean("show_number_totals", false));
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_POPUP)
+                .setEnabled(gameSettings.getBoolean("im_popup", true), imControlPanel);
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_POPUP)
+                .setCompletedValuesHighlighted(gameSettings.getBoolean("highlight_completed_values", true));
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_POPUP)
+                .setNumberTotalsShown(gameSettings.getBoolean("show_number_totals", false));
 
-        mIMControlPanel.activateFirstInputMethod(); // make sure that some input method is activated
-        mIMControlPanelStatePersister.restoreState(mIMControlPanel);
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_NUMPAD)
+                .setEnabled(gameSettings.getBoolean("im_numpad", true), imControlPanel);
+        ((IMNumpad) imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_NUMPAD))
+                .setMoveCellSelectionOnPress(gameSettings.getBoolean("im_numpad_move_right", false));
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_NUMPAD)
+                .setCompletedValuesHighlighted(gameSettings.getBoolean("highlight_completed_values", true));
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_NUMPAD)
+                .setNumberTotalsShown(gameSettings.getBoolean("show_number_totals", false));
+
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_SINGLE_NUMBER)
+                .setEnabled(gameSettings.getBoolean("im_single_number", true), imControlPanel);
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_SINGLE_NUMBER)
+                .setCompletedValuesHighlighted(gameSettings.getBoolean("highlight_completed_values", true));
+        imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_SINGLE_NUMBER)
+                .setNumberTotalsShown(gameSettings.getBoolean("show_number_totals", false));
+        ((IMSingleNumber) imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_SINGLE_NUMBER))
+                .setBidirectionalSelection(gameSettings.getBoolean("bidirectional_selection", true));
+        ((IMSingleNumber) imControlPanel.getInputMethods().get(InputMethod.Type.INPUT_METHOD_SINGLE_NUMBER))
+                .setHighlightSimilar(gameSettings.getBoolean("highlight_similar", true));
+
+        imControlPanel.activateFirstInputMethod(); // make sure that some input method is activated
+        mIMControlPanelStatePersister.restoreState(imControlPanel);
+
         mSudokuBoard.invokeOnCellSelected();
 
         updateTime();
@@ -249,8 +256,8 @@ public class SudokuPlayActivity extends FragmentActivity {
         mDatabase.updateSudoku(mSudokuGame);
 
         mGameTimer.stop();
-        mIMControlPanel.pause();
-        mIMControlPanelStatePersister.saveState(mIMControlPanel);
+        imControlPanel.pause();
+        mIMControlPanelStatePersister.saveState(imControlPanel);
     }
 
     @Override
@@ -476,21 +483,19 @@ public class SudokuPlayActivity extends FragmentActivity {
 
     };
 
-    public interface OnSelectedNumberChangedListener {
-        void onSelectedNumberChanged(int number);
+    @Override
+    public void onCellTapped(Cell cell) {
+        if (imControlPanel.isActiveMethodIndexValid()) {
+            imControlPanel.getActiveInputMethod().onCellTapped(cell);
+        }
     }
 
-    private OnSelectedNumberChangedListener onSelectedNumberChangedListener = new OnSelectedNumberChangedListener() {
-        @Override
-        public void onSelectedNumberChanged(int number) {
-            if (number != 0) {
-                Cell cell = mSudokuGame.getCells().findFirstCell(number);
-                if (cell != null) {
-                    mSudokuBoard.moveCellSelectionTo(cell.getRowIndex(), cell.getColumnIndex());
-                }
-            }
+    @Override
+    public void onCellSelected(Cell cell) {
+        if (imControlPanel.isActiveMethodIndexValid()) {
+            imControlPanel.getActiveInputMethod().onCellSelected(cell);
         }
-    };
+    }
 
     /**
      * Update the time of game-play.

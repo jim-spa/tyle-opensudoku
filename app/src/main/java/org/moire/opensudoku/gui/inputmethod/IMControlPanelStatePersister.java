@@ -27,9 +27,10 @@ public class IMControlPanelStatePersister {
 		cpState.commit();
 
 		// save state of all input methods
-		for (InputMethod im : controlPanel.getInputMethods()) {
-			StateBundle outState = new StateBundle(mPreferences, PREFIX + "" + im.getInputMethodName(), true);
-			im.onSaveState(outState);
+		for (int i = 0; i < controlPanel.getInputMethods().size(); ++i) {
+			StateBundle outState = new StateBundle(mPreferences, PREFIX + ""
+					+ controlPanel.getInputMethods().get(InputMethod.Type.valueOf(i)).getInputMethodName(), true);
+			controlPanel.getInputMethods().get(InputMethod.Type.valueOf(i)).onSaveState(outState);
 			outState.commit();
 		}
 	}
@@ -43,9 +44,10 @@ public class IMControlPanelStatePersister {
 		}
 
 		// restore state of all input methods
-		for (InputMethod im : controlPanel.getInputMethods()) {
-			StateBundle savedState = new StateBundle(mPreferences, PREFIX + "" + im.getInputMethodName(), false);
-			im.onRestoreState(savedState);
+		for (int i = 0; i < controlPanel.getInputMethods().size(); ++i) {
+			StateBundle savedState = new StateBundle(mPreferences, PREFIX + ""
+					+ controlPanel.getInputMethods().get(InputMethod.Type.valueOf(i)).getInputMethodName(), false);
+			controlPanel.getInputMethods().get(InputMethod.Type.valueOf(i)).onRestoreState(savedState);
 		}
 	}
 
