@@ -132,10 +132,9 @@ public class IMControlPanel extends LinearLayout implements SetEnabledListener {
 			id = -1;
 		}
 
-		for (int i = 0; i < getInputMethods().size(); i++) {
-			InputMethod im = getInputMethods().get(InputMethod.Type.valueOf(i));
-			if (im.isInputMethodViewCreated()) {
-				im.getInputMethodView().setVisibility(i == id ? View.VISIBLE : View.GONE);
+		for (Map.Entry<InputMethod.Type, InputMethod> entry : getInputMethods().entrySet()) {
+			if (entry.getValue().isInputMethodViewCreated()) {
+				entry.getValue().getInputMethodView().setVisibility(entry.getKey().getValue() == id ? View.VISIBLE : View.GONE);
 			}
 		}
 
@@ -196,8 +195,8 @@ public class IMControlPanel extends LinearLayout implements SetEnabledListener {
 	 * for example properly dismiss dialogs because of WindowLeaked exception).
 	 */
 	public void pause() {
-		for (int i = 0; i < getInputMethods().size(); ++i) {
-			getInputMethods().get(InputMethod.Type.valueOf(i)).pause();
+		for (Map.Entry<InputMethod.Type, InputMethod> entry : getInputMethods().entrySet()) {
+			entry.getValue().pause();
 		}
 	}
 

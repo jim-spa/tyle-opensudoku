@@ -56,7 +56,7 @@ public class IMSingleNumber extends InputMethod implements OnChangeListener {
 	private int selectedNumber = 1;
 	private EditMode editMode = EditMode.MODE_EDIT_VALUE;
 
-	private Handler guiHandler = new Handler();;
+	private Handler guiHandler = new Handler();
 
 	private Map<Integer, Button> numberButtons;
 	private ImageButton switchNumNoteButton;

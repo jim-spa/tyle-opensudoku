@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
+import java.util.Map;
+
 /**
  * This class is responsible for persisting of control panel's state.
  *
@@ -27,10 +29,10 @@ public class IMControlPanelStatePersister {
 		cpState.commit();
 
 		// save state of all input methods
-		for (int i = 0; i < controlPanel.getInputMethods().size(); ++i) {
+		for (Map.Entry<InputMethod.Type, InputMethod> entry : controlPanel.getInputMethods().entrySet()) {
 			StateBundle outState = new StateBundle(mPreferences, PREFIX + ""
-					+ controlPanel.getInputMethods().get(InputMethod.Type.valueOf(i)).getInputMethodName(), true);
-			controlPanel.getInputMethods().get(InputMethod.Type.valueOf(i)).onSaveState(outState);
+					+ entry.getValue().getInputMethodName(), true);
+			entry.getValue().onSaveState(outState);
 			outState.commit();
 		}
 	}
@@ -44,10 +46,10 @@ public class IMControlPanelStatePersister {
 		}
 
 		// restore state of all input methods
-		for (int i = 0; i < controlPanel.getInputMethods().size(); ++i) {
+		for (Map.Entry<InputMethod.Type, InputMethod> entry : controlPanel.getInputMethods().entrySet()) {
 			StateBundle savedState = new StateBundle(mPreferences, PREFIX + ""
-					+ controlPanel.getInputMethods().get(InputMethod.Type.valueOf(i)).getInputMethodName(), false);
-			controlPanel.getInputMethods().get(InputMethod.Type.valueOf(i)).onRestoreState(savedState);
+					+ entry.getValue().getInputMethodName(), false);
+			entry.getValue().onRestoreState(savedState);
 		}
 	}
 
