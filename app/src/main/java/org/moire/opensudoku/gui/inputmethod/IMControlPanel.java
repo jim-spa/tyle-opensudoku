@@ -50,10 +50,10 @@ public class IMControlPanel extends LinearLayout implements SetEnabledListener {
 		super(context, attrs);
 	}
 
-	public void init(Context context, SudokuBoardView boardView, SudokuGame game, HintsQueue hintsQueue) {
-		IMPopup imPopup = new IMPopup(context, boardView, game, hintsQueue);
-		IMSingleNumber imSingleNumber = new IMSingleNumber(context, boardView, game, hintsQueue);
-		IMNumpad imNumpad = new IMNumpad(context, boardView, game, hintsQueue);
+	public void configureInputMethods(SudokuBoardView boardView, SudokuGame game, HintsQueue hintsQueue) {
+		IMPopup imPopup = new IMPopup(getContext(), boardView, game, hintsQueue);
+		IMSingleNumber imSingleNumber = new IMSingleNumber(getContext(), boardView, game, hintsQueue);
+		IMNumpad imNumpad = new IMNumpad(getContext(), boardView, game, hintsQueue);
 
 		inputMethods = new TreeMap<>();
 		inputMethods.put(InputMethod.Type.INPUT_METHOD_POPUP, imPopup);

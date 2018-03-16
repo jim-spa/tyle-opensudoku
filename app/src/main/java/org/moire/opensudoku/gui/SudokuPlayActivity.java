@@ -160,7 +160,7 @@ public class SudokuPlayActivity extends FragmentActivity implements SudokuBoardV
         mHintsQueue.showOneTimeHint("welcome", R.string.welcome, R.string.first_run_hint);
 
         imControlPanel = findViewById(R.id.input_methods);
-        imControlPanel.init(this, mSudokuBoard, mSudokuGame, mHintsQueue);
+        imControlPanel.configureInputMethods(mSudokuBoard, mSudokuGame, mHintsQueue);
 
         mIMControlPanelStatePersister = new IMControlPanelStatePersister(this);
 
