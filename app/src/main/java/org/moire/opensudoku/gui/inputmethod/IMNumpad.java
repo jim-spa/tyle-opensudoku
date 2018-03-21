@@ -21,6 +21,7 @@
 package org.moire.opensudoku.gui.inputmethod;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import android.content.Context;
@@ -34,29 +35,28 @@ import org.moire.opensudoku.R;
 import org.moire.opensudoku.game.Cell;
 import org.moire.opensudoku.game.CellCollection;
 import org.moire.opensudoku.game.CellNote;
-import org.moire.opensudoku.game.SudokuGame;
 import org.moire.opensudoku.game.CellCollection.OnChangeListener;
+import org.moire.opensudoku.game.SudokuGame;
 import org.moire.opensudoku.gui.HintsQueue;
 import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBundle;
 
-public class IMNumpad extends InputMethod {
+public class IMNumpad extends InputMethod implements OnChangeListener {
 
 	private boolean moveCellSelectionOnPress = true;
-	private boolean mHighlightCompletedValues = true;
-	private boolean mShowNumberTotals = false;
-
-	private static final int MODE_EDIT_VALUE = 0;
-	private static final int MODE_EDIT_NOTE = 1;
+	private EditMode editMode = EditMode.MODE_EDIT_VALUE;
 
 	private Cell mSelectedCell;
 	private ImageButton mSwitchNumNoteButton;
 
-	private int mEditMode = MODE_EDIT_VALUE;
-
 	private Map<Integer, Button> mNumberButtons;
 
-	public boolean isMoveCellSelectionOnPress() {
+	IMNumpad(Context context, SudokuBoardView sudokuBoardView, SudokuGame sudokuGame, HintsQueue hintsQueue) {
+		super(context, sudokuBoardView, sudokuGame, hintsQueue);
+		getSudokuGame().getCells().addOnChangeListener(this);
+	}
+
+	public boolean isMoveCellSelectionOnPressEnabled() {
 		return moveCellSelectionOnPress;
 	}
 
@@ -64,39 +64,13 @@ public class IMNumpad extends InputMethod {
 		this.moveCellSelectionOnPress = moveCellSelectionOnPress;
 	}
 
-	public boolean getHighlightCompletedValues() {
-		return mHighlightCompletedValues;
-	}
-
-	/**
-	 * If set to true, buttons for numbers, which occur in {@link CellCollection}
-	 * more than {@link CellCollection#SUDOKU_SIZE}-times, will be highlighted.
-	 *
-	 * @param highlightCompletedValues
-	 */
-	public void setHighlightCompletedValues(boolean highlightCompletedValues) {
-		mHighlightCompletedValues = highlightCompletedValues;
-	}
-
-	public boolean getShowNumberTotals() {
-		return mShowNumberTotals;
-	}
-
-	public void setShowNumberTotals(boolean showNumberTotals) {
-		mShowNumberTotals = showNumberTotals;
-	}
-
-	@Override
-	protected void initialize(Context context, IMControlPanel controlPanel,
-							  SudokuGame game, SudokuBoardView board, HintsQueue hintsQueue) {
-		super.initialize(context, controlPanel, game, board, hintsQueue);
-
-		game.getCells().addOnChangeListener(mOnCellsChangeListener);
+	public EditMode getEditMode() {
+		return editMode;
 	}
 
 	@Override
 	protected View createControlPanelView() {
-		LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View controlPanel = inflater.inflate(R.layout.im_numpad, null);
 
 		mNumberButtons = new HashMap<Integer, Button>();
@@ -117,15 +91,10 @@ public class IMNumpad extends InputMethod {
 			b.setOnClickListener(mNumberButtonClick);
 		}
 
-		mSwitchNumNoteButton = (ImageButton) controlPanel.findViewById(R.id.switch_num_note);
-		mSwitchNumNoteButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				mEditMode = mEditMode == MODE_EDIT_VALUE ? MODE_EDIT_NOTE : MODE_EDIT_VALUE;
+		mSwitchNumNoteButton = controlPanel.findViewById(R.id.switch_num_note);
+		mSwitchNumNoteButton.setOnClickListener(v -> {
+				editMode.toggleValue();
 				update();
-			}
-
 		});
 
 		return controlPanel;
@@ -144,18 +113,18 @@ public class IMNumpad extends InputMethod {
 
 	@Override
 	public String getAbbrName() {
-		return mContext.getString(R.string.numpad_abbr);
+		return getContext().getString(R.string.numpad_abbr);
 	}
 
 	@Override
 	protected void onActivated() {
 		update();
 
-		mSelectedCell = mBoard.getSelectedCell();
+		mSelectedCell = getSudokuBoardView().getSelectedCell();
 	}
 
 	@Override
-	protected void onCellSelected(Cell cell) {
+	public void onCellSelected(Cell cell) {
 		mSelectedCell = cell;
 	}
 
@@ -167,19 +136,19 @@ public class IMNumpad extends InputMethod {
 			Cell selCell = mSelectedCell;
 
 			if (selCell != null) {
-				switch (mEditMode) {
+				switch (getEditMode()) {
 					case MODE_EDIT_NOTE:
 						if (selNumber == 0) {
-							mGame.setCellNote(selCell, CellNote.EMPTY);
+							getSudokuGame().setCellNote(selCell, CellNote.EMPTY);
 						} else if (selNumber > 0 && selNumber <= 9) {
-							mGame.setCellNote(selCell, selCell.getNote().toggleNumber(selNumber));
+							getSudokuGame().setCellNote(selCell, selCell.getNote().toggleNumber(selNumber));
 						}
 						break;
 					case MODE_EDIT_VALUE:
 						if (selNumber >= 0 && selNumber <= 9) {
-							mGame.setCellValue(selCell, selNumber);
-							if (isMoveCellSelectionOnPress()) {
-								mBoard.moveCellSelectionRight();
+							getSudokuGame().setCellValue(selCell, selNumber);
+							if (isMoveCellSelectionOnPressEnabled()) {
+								getSudokuBoardView().moveCellSelectionRight();
 							}
 						}
 						break;
@@ -189,19 +158,16 @@ public class IMNumpad extends InputMethod {
 
 	};
 
-	private OnChangeListener mOnCellsChangeListener = new OnChangeListener() {
-
-		@Override
-		public void onChange() {
-			if (mActive) {
-				update();
-			}
+	@Override
+	public void onChange() {
+		if (isActive()) {
+			update();
 		}
-	};
+	}
 
 
 	private void update() {
-		switch (mEditMode) {
+		switch (getEditMode()) {
 			case MODE_EDIT_NOTE:
 				mSwitchNumNoteButton.setImageResource(R.drawable.ic_edit_white);
 				break;
@@ -211,10 +177,10 @@ public class IMNumpad extends InputMethod {
 		}
 
 		Map<Integer, Integer> valuesUseCount = null;
-		if (mHighlightCompletedValues || mShowNumberTotals)
-			valuesUseCount = mGame.getCells().getValuesUseCount();
+		if (isCompletedValuesHighlighted() || isNumberTotalsShown())
+			valuesUseCount = getSudokuGame().getCells().getValuesUseCount();
 
-		if (mHighlightCompletedValues) {
+		if (isCompletedValuesHighlighted()) {
 			for (Map.Entry<Integer, Integer> entry : valuesUseCount.entrySet()) {
 				boolean highlightValue = entry.getValue() >= CellCollection.SUDOKU_SIZE;
 				Button b = mNumberButtons.get(entry.getKey());
@@ -226,24 +192,25 @@ public class IMNumpad extends InputMethod {
 			}
 		}
 
-		if (mShowNumberTotals) {
+		if (isNumberTotalsShown() && valuesUseCount != null) {
 			for (Map.Entry<Integer, Integer> entry : valuesUseCount.entrySet()) {
 				Button b = mNumberButtons.get(entry.getKey());
-				b.setText(entry.getKey() + " (" + entry.getValue() + ")");
+				b.setText(String.format(Locale.US,"%s (%d)", entry.getKey(), entry.getValue()));
 			}
 		}
 	}
 
 	@Override
 	protected void onSaveState(StateBundle outState) {
-		outState.putInt("editMode", mEditMode);
+		outState.putInt("editMode", getEditMode().getValue());
 	}
 
 	@Override
 	protected void onRestoreState(StateBundle savedState) {
-		mEditMode = savedState.getInt("editMode", MODE_EDIT_VALUE);
+		editMode = EditMode.valueOf(savedState.getInt("editMode", EditMode.MODE_EDIT_VALUE.getValue()));
 		if (isInputMethodViewCreated()) {
 			update();
 		}
 	}
+
 }

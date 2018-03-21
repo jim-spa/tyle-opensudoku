@@ -27,10 +27,13 @@ import android.view.View;
 import android.widget.Button;
 import org.moire.opensudoku.R;
 import org.moire.opensudoku.game.Cell;
+import org.moire.opensudoku.game.CellCollection;
 import org.moire.opensudoku.game.SudokuGame;
 import org.moire.opensudoku.gui.HintsQueue;
 import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBundle;
+
+import java.util.Locale;
 
 /**
  * Base class for several input methods used to edit sudoku contents.
@@ -39,30 +42,25 @@ import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBu
  */
 public abstract class InputMethod {
 
-	// TODO: I should not have mPrefix for fields used in subclasses, create proper getters
-	protected Context mContext;
-	protected IMControlPanel mControlPanel;
-	protected SudokuGame mGame;
-	protected SudokuBoardView mBoard;
-	protected HintsQueue mHintsQueue;
+	private boolean isActive = false;
+	private boolean isEnabled = true;
+	private boolean isCompletedValuesHighlighted = true;
+	private boolean isNumberTotalsShown = false;
 
-	private String mInputMethodName;
+	private final Context context;
+	private final SudokuGame sudokuGame;
+	private final SudokuBoardView sudokuBoardView;
+	private final HintsQueue hintsQueue;
+
+	private final String mInputMethodName;
 	protected View mInputMethodView;
 
-	protected boolean mActive = false;
-	private boolean mEnabled = true;
-
-	public InputMethod() {
-
-	}
-
-	protected void initialize(Context context, IMControlPanel controlPanel, SudokuGame game, SudokuBoardView board, HintsQueue hintsQueue) {
-		mContext = context;
-		mControlPanel = controlPanel;
-		mGame = game;
-		mBoard = board;
-		mHintsQueue = hintsQueue;
-		mInputMethodName = this.getClass().getSimpleName();
+	protected InputMethod(Context context, SudokuBoardView sudokuBoardView, SudokuGame sudokuGame, HintsQueue hintsQueue) {
+		this.context = context;
+		this.sudokuBoardView = sudokuBoardView;
+		this.sudokuGame = sudokuGame;
+		this.hintsQueue = hintsQueue;
+		this.mInputMethodName = getClass().getSimpleName();
 	}
 
 	public boolean isInputMethodViewCreated() {
@@ -114,26 +112,52 @@ public abstract class InputMethod {
 	 */
 	public abstract String getAbbrName();
 
-	public void setEnabled(boolean enabled) {
-		mEnabled = enabled;
+	public void setEnabled(boolean enabled, SetEnabledListener listener) {
+		isEnabled = enabled;
 
 		if (!enabled) {
-			mControlPanel.activateNextInputMethod();
+			listener.onSetEnabled();
 		}
 	}
 
 	public boolean isEnabled() {
-		return mEnabled;
+		return isEnabled;
 	}
 
 	public void activate() {
-		mActive = true;
+		isActive = true;
 		onActivated();
 	}
 
 	public void deactivate() {
-		mActive = false;
+		isActive = false;
 		onDeactivated();
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public boolean isCompletedValuesHighlighted() {
+		return isCompletedValuesHighlighted;
+	}
+
+	/**
+	 * If set to true, buttons for numbers, which occur in {@link CellCollection}
+	 * more than {@link CellCollection#SUDOKU_SIZE}-times, will be highlighted.
+	 *
+	 * @param isCompletedValuesHighlighted
+	 */
+	public void setCompletedValuesHighlighted(boolean isCompletedValuesHighlighted) {
+		this.isCompletedValuesHighlighted = isCompletedValuesHighlighted;
+	}
+
+	public boolean isNumberTotalsShown() {
+		return isNumberTotalsShown;
+	}
+
+	public void setNumberTotalsShown(boolean isNumberTotalsShown) {
+		this.isNumberTotalsShown = isNumberTotalsShown;
 	}
 
 	protected abstract View createControlPanelView();
@@ -154,7 +178,7 @@ public abstract class InputMethod {
 	 *
 	 * @param cell
 	 */
-	protected void onCellSelected(Cell cell) {
+	public void onCellSelected(Cell cell) {
 
 	}
 
@@ -163,7 +187,7 @@ public abstract class InputMethod {
 	 *
 	 * @param cell
 	 */
-	protected void onCellTapped(Cell cell) {
+	public void onCellTapped(Cell cell) {
 
 	}
 
@@ -172,4 +196,52 @@ public abstract class InputMethod {
 
 	protected void onRestoreState(StateBundle savedState) {
 	}
+
+	public Context getContext() {
+		return context;
+	}
+
+	public SudokuGame getSudokuGame() {
+		return sudokuGame;
+	}
+
+	public SudokuBoardView getSudokuBoardView() {
+		return sudokuBoardView;
+	}
+
+	public HintsQueue getHintsQueue() {
+		return hintsQueue;
+	}
+
+	public enum Type {
+
+		INPUT_METHOD_POPUP(0),
+		INPUT_METHOD_SINGLE_NUMBER(1),
+		INPUT_METHOD_NUMPAD(2);
+
+		private final int value;
+
+		Type(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
+
+		public static Type valueOf(int value) {
+			switch(value) {
+				case 0:
+					return INPUT_METHOD_POPUP;
+				case 1:
+					return INPUT_METHOD_SINGLE_NUMBER;
+				case 2:
+					return INPUT_METHOD_NUMPAD;
+			}
+			throw new IllegalArgumentException(String.format(Locale.US,
+					"%d is not a legal enum value for InputMethod.Type"));
+		}
+
+	}
+
 }

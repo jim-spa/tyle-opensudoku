@@ -30,18 +30,16 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
 import org.moire.opensudoku.R;
 import org.moire.opensudoku.game.Cell;
 import org.moire.opensudoku.game.CellCollection;
 import org.moire.opensudoku.game.CellNote;
-import org.moire.opensudoku.game.SudokuGame;
 import org.moire.opensudoku.game.CellCollection.OnChangeListener;
+import org.moire.opensudoku.game.SudokuGame;
 import org.moire.opensudoku.gui.HintsQueue;
 import org.moire.opensudoku.gui.SudokuBoardView;
-import org.moire.opensudoku.gui.SudokuPlayActivity;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBundle;
 
 /**
@@ -50,79 +48,39 @@ import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBu
  *
  * @author romario
  */
-public class IMSingleNumber extends InputMethod {
+public class IMSingleNumber extends InputMethod implements OnChangeListener {
 
-	private static final int MODE_EDIT_VALUE = 0;
-	private static final int MODE_EDIT_NOTE = 1;
+	private boolean isBidirectionalSelectionEnabled = true;
+	private boolean isSimilarHighlighted = true;
 
-	private boolean mHighlightCompletedValues = true;
-	private boolean mShowNumberTotals = false;
-	private boolean mBidirectionalSelection = true;
-	private boolean mHighlightSimilar = true;
+	private int selectedNumber = 1;
+	private EditMode editMode = EditMode.MODE_EDIT_VALUE;
 
-	private int mSelectedNumber = 1;
-	private int mEditMode = MODE_EDIT_VALUE;
+	private Handler guiHandler = new Handler();
 
-	private Handler mGuiHandler;
-	private Map<Integer, Button> mNumberButtons;
-	private ImageButton mSwitchNumNoteButton;
+	private Map<Integer, Button> numberButtons;
+	private ImageButton switchNumNoteButton;
 
-	private SudokuPlayActivity.OnSelectedNumberChangedListener mOnSelectedNumberChangedListener = null;
-
-	public IMSingleNumber() {
-		super();
-
-		mGuiHandler = new Handler();
+	IMSingleNumber(Context context, SudokuBoardView sudokuBoardView, SudokuGame sudokuGame, HintsQueue hintsQueue) {
+		super(context, sudokuBoardView, sudokuGame, hintsQueue);
+		// TODO potential problem
+		getSudokuGame().getCells().addOnChangeListener(this);
 	}
 
-	public boolean getHighlightCompletedValues() {
-		return mHighlightCompletedValues;
+	public boolean isBidirectionalSelectionEnabled() {
+		return isBidirectionalSelectionEnabled;
 	}
 
-	/**
-	 * If set to true, buttons for numbers, which occur in {@link CellCollection}
-	 * more than {@link CellCollection#SUDOKU_SIZE}-times, will be highlighted.
-	 *
-	 * @param highlightCompletedValues
-	 */
-	public void setHighlightCompletedValues(boolean highlightCompletedValues) {
-		mHighlightCompletedValues = highlightCompletedValues;
+	public void setBidirectionalSelection(boolean isBidirectionalSelectionEnabled) {
+		this.isBidirectionalSelectionEnabled = isBidirectionalSelectionEnabled;
 	}
 
-	public boolean getShowNumberTotals() {
-		return mShowNumberTotals;
+	public boolean isSimilarHighlighted() {
+		return isSimilarHighlighted;
 	}
 
-	public void setShowNumberTotals(boolean showNumberTotals) {
-		mShowNumberTotals = showNumberTotals;
-	}
-
-	public boolean getBidirectionalSelection() {
-		return mBidirectionalSelection;
-	}
-
-	public void setBidirectionalSelection(boolean bidirectionalSelection) {
-		mBidirectionalSelection = bidirectionalSelection;
-	}
-
-	public boolean getHighlightSimilar() {
-		return mHighlightSimilar;
-	}
-
-	public void setHighlightSimilar(boolean highlightSimilar) {
-		mHighlightSimilar = highlightSimilar;
-	}
-
-	public void setmOnSelectedNumberChangedListener(SudokuPlayActivity.OnSelectedNumberChangedListener l) {
-		mOnSelectedNumberChangedListener = l;
-	}
-
-	@Override
-	protected void initialize(Context context, IMControlPanel controlPanel,
-							  SudokuGame game, SudokuBoardView board, HintsQueue hintsQueue) {
-		super.initialize(context, controlPanel, game, board, hintsQueue);
-
-		game.getCells().addOnChangeListener(mOnCellsChangeListener);
+	public void setHighlightSimilar(boolean isSimilarHighlighted) {
+		this.isSimilarHighlighted = isSimilarHighlighted;
 	}
 
 	@Override
@@ -137,95 +95,92 @@ public class IMSingleNumber extends InputMethod {
 
 	@Override
 	public String getAbbrName() {
-		return mContext.getString(R.string.single_number_abbr);
+		return getContext().getString(R.string.single_number_abbr);
 	}
 
 	@Override
 	protected View createControlPanelView() {
-		LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View controlPanel = inflater.inflate(R.layout.im_single_number, null);
 
-		mNumberButtons = new HashMap<Integer, Button>();
-		mNumberButtons.put(1, (Button) controlPanel.findViewById(R.id.button_1));
-		mNumberButtons.put(2, (Button) controlPanel.findViewById(R.id.button_2));
-		mNumberButtons.put(3, (Button) controlPanel.findViewById(R.id.button_3));
-		mNumberButtons.put(4, (Button) controlPanel.findViewById(R.id.button_4));
-		mNumberButtons.put(5, (Button) controlPanel.findViewById(R.id.button_5));
-		mNumberButtons.put(6, (Button) controlPanel.findViewById(R.id.button_6));
-		mNumberButtons.put(7, (Button) controlPanel.findViewById(R.id.button_7));
-		mNumberButtons.put(8, (Button) controlPanel.findViewById(R.id.button_8));
-		mNumberButtons.put(9, (Button) controlPanel.findViewById(R.id.button_9));
-		mNumberButtons.put(0, (Button) controlPanel.findViewById(R.id.button_clear));
+		numberButtons = new HashMap<Integer, Button>();
+		numberButtons.put(1, (Button) controlPanel.findViewById(R.id.button_1));
+		numberButtons.put(2, (Button) controlPanel.findViewById(R.id.button_2));
+		numberButtons.put(3, (Button) controlPanel.findViewById(R.id.button_3));
+		numberButtons.put(4, (Button) controlPanel.findViewById(R.id.button_4));
+		numberButtons.put(5, (Button) controlPanel.findViewById(R.id.button_5));
+		numberButtons.put(6, (Button) controlPanel.findViewById(R.id.button_6));
+		numberButtons.put(7, (Button) controlPanel.findViewById(R.id.button_7));
+		numberButtons.put(8, (Button) controlPanel.findViewById(R.id.button_8));
+		numberButtons.put(9, (Button) controlPanel.findViewById(R.id.button_9));
+		numberButtons.put(0, (Button) controlPanel.findViewById(R.id.button_clear));
 
-		for (Integer num : mNumberButtons.keySet()) {
-			Button b = mNumberButtons.get(num);
+		for (Integer num : numberButtons.keySet()) {
+			Button b = numberButtons.get(num);
 			b.setTag(num);
-			b.setOnClickListener(mNumberButtonClicked);
-            b.setOnTouchListener(mNumberButtonTouched);
+			b.setOnClickListener(this::handleNumberButtonClicked);
+            b.setOnTouchListener(this::handleNumberButtonTouched);
 		}
 
-		mSwitchNumNoteButton = (ImageButton) controlPanel.findViewById(R.id.switch_num_note);
-		mSwitchNumNoteButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				mEditMode = mEditMode == MODE_EDIT_VALUE ? MODE_EDIT_NOTE : MODE_EDIT_VALUE;
+		switchNumNoteButton = controlPanel.findViewById(R.id.switch_num_note);
+		switchNumNoteButton.setOnClickListener(v -> {
+				editMode.toggleValue();
 				update();
-			}
-
 		});
 
 		return controlPanel;
 	}
 
-    private View.OnTouchListener mNumberButtonTouched = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View view, MotionEvent motionEvent) {
-            mSelectedNumber = (Integer) view.getTag();
-			onSelectedNumberChanged();
-            update();
-            return true;
-        }
-    };
+	private boolean handleNumberButtonTouched(View view, MotionEvent motionEvent) {
+		setSelectedNumber((Integer) view.getTag());
+		onSelectedNumberChanged();
+		update();
+		return true;
+	}
 
-	private OnClickListener mNumberButtonClicked = new OnClickListener() {
+	private void handleNumberButtonClicked(View v) {
+		setSelectedNumber((Integer) v.getTag());
+		onSelectedNumberChanged();
+		update();
+	}
 
-		@Override
-		public void onClick(View v) {
-			mSelectedNumber = (Integer) v.getTag();
-			onSelectedNumberChanged();
+	public int getSelectedNumber() {
+		return selectedNumber;
+	}
+
+	public void setSelectedNumber(int selectedNumber) {
+		this.selectedNumber = selectedNumber;
+	}
+
+	public EditMode getEditMode() {
+		return editMode;
+	}
+
+	@Override
+	public void onChange() {
+		if (isActive()) {
 			update();
 		}
-	};
-
-	private OnChangeListener mOnCellsChangeListener = new OnChangeListener() {
-
-		@Override
-		public void onChange() {
-			if (mActive) {
-				update();
-			}
-		}
-	};
+	}
 
 	private void update() {
-		switch (mEditMode) {
+		switch (getEditMode()) {
 			case MODE_EDIT_NOTE:
-				mSwitchNumNoteButton.setImageResource(R.drawable.ic_edit_white);
+				switchNumNoteButton.setImageResource(R.drawable.ic_edit_white);
 				break;
 			case MODE_EDIT_VALUE:
-				mSwitchNumNoteButton.setImageResource(R.drawable.ic_edit_grey);
+				switchNumNoteButton.setImageResource(R.drawable.ic_edit_grey);
 				break;
 		}
 
 		// TODO: sometimes I change background too early and button stays in pressed state
 		// this is just ugly workaround
-		mGuiHandler.postDelayed(new Runnable() {
+		guiHandler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
-				for (Button b : mNumberButtons.values()) {
-					if (b.getTag().equals(mSelectedNumber)) {
-						b.setTextAppearance(mContext, android.R.style.TextAppearance_Large);
+				for (Button b : numberButtons.values()) {
+					if (b.getTag().equals(getSelectedNumber())) {
+						b.setTextAppearance(getContext(), android.R.style.TextAppearance_Large);
 						b.getBackground().setColorFilter(null);
                         /* Use focus instead color */
 						/*LightingColorFilter selBkgColorFilter = new LightingColorFilter(
@@ -233,21 +188,21 @@ public class IMSingleNumber extends InputMethod {
 						b.getBackground().setColorFilter(selBkgColorFilter);*/
                         b.requestFocus();
 					} else {
-						b.setTextAppearance(mContext, android.R.style.TextAppearance_Widget_Button);
+						b.setTextAppearance(getContext(), android.R.style.TextAppearance_Widget_Button);
 						b.getBackground().setColorFilter(null);
 					}
 				}
 
 				Map<Integer, Integer> valuesUseCount = null;
-				if (mHighlightCompletedValues || mShowNumberTotals)
-					valuesUseCount = mGame.getCells().getValuesUseCount();
+				if (isCompletedValuesHighlighted() || isNumberTotalsShown())
+					valuesUseCount = getSudokuGame().getCells().getValuesUseCount();
 
-				if (mHighlightCompletedValues) {
+				if (isCompletedValuesHighlighted()) {
 					//int completedTextColor = mContext.getResources().getColor(R.color.im_number_button_completed_text);
 					for (Map.Entry<Integer, Integer> entry : valuesUseCount.entrySet()) {
 						boolean highlightValue = entry.getValue() >= CellCollection.SUDOKU_SIZE;
 						if (highlightValue) {
-							Button b = mNumberButtons.get(entry.getKey());
+							Button b = numberButtons.get(entry.getKey());
 							/*if (b.getTag().equals(mSelectedNumber)) {
 								b.setTextColor(completedTextColor);
 							} else {
@@ -260,10 +215,10 @@ public class IMSingleNumber extends InputMethod {
 					}
 				}
 
-				if (mShowNumberTotals) {
+				if (isNumberTotalsShown()) {
 					for (Map.Entry<Integer, Integer> entry : valuesUseCount.entrySet()) {
-						Button b = mNumberButtons.get(entry.getKey());
-						if (!b.getTag().equals(mSelectedNumber))
+						Button b = numberButtons.get(entry.getKey());
+						if (!b.getTag().equals(getSelectedNumber()))
 							b.setText(entry.getKey() + " (" + entry.getValue() + ")");
 						else
 							b.setText("" + entry.getKey());
@@ -279,68 +234,70 @@ public class IMSingleNumber extends InputMethod {
 	}
 
 	@Override
-	protected void onCellSelected(Cell cell) {
+	public void onCellSelected(Cell cell) {
 		super.onCellSelected(cell);
 
-		if (mBidirectionalSelection) {
+		if (isBidirectionalSelectionEnabled()) {
 			int v = cell.getValue();
-			if (v != 0 && v != mSelectedNumber) {
-				mSelectedNumber = cell.getValue();
+			if (v != 0 && v != getSelectedNumber()) {
+				setSelectedNumber(cell.getValue());
 				update();
 			}
 		}
 	}
 
 	private void onSelectedNumberChanged() {
-		if (mBidirectionalSelection && mHighlightSimilar && mOnSelectedNumberChangedListener != null) {
-			mOnSelectedNumberChangedListener.onSelectedNumberChanged(mSelectedNumber);
+		if (getSelectedNumber() != 0) {
+			Cell cell = getSudokuGame().getCells().findFirstCell(getSelectedNumber());
+			if (cell != null) {
+				getSudokuBoardView().moveCellSelectionTo(cell.getRowIndex(), cell.getColumnIndex());
+			}
 		}
 	}
 
 	@Override
-	protected void onCellTapped(Cell cell) {
-		int selNumber = mSelectedNumber;
+	public void onCellTapped(Cell cell) {
+		int selNumber = getSelectedNumber();
 
-		switch (mEditMode) {
+		switch (getEditMode()) {
 			case MODE_EDIT_NOTE:
 				if (selNumber == 0) {
-					mGame.setCellNote(cell, CellNote.EMPTY);
+					getSudokuGame().setCellNote(cell, CellNote.EMPTY);
 				} else if (selNumber > 0 && selNumber <= 9) {
-					mGame.setCellNote(cell, cell.getNote().toggleNumber(selNumber));
+					getSudokuGame().setCellNote(cell, cell.getNote().toggleNumber(selNumber));
 				}
-				break;
+				return;
 			case MODE_EDIT_VALUE:
 				if (selNumber >= 0 && selNumber <= 9) {
-					if (!mNumberButtons.get(selNumber).isEnabled()) {
+					if (!numberButtons.get(selNumber).isEnabled()) {
 						// Number requested has been disabled but it is still selected. This means that
 						// this number can be no longer entered, however any of the existing fields
 						// with this number can be deleted by repeated touch
 						if (selNumber == cell.getValue()) {
-							mGame.setCellValue(cell, 0);
+							getSudokuGame().setCellValue(cell, 0);
 						}
 					} else {
 						// Normal flow, just set the value (or clear it if it is repeated touch)
 						if (selNumber == cell.getValue()) {
 							selNumber = 0;
 						}
-						mGame.setCellValue(cell, selNumber);
+						getSudokuGame().setCellValue(cell, selNumber);
 					}
 				}
-				break;
 		}
 
 	}
 
 	@Override
 	protected void onSaveState(StateBundle outState) {
-		outState.putInt("selectedNumber", mSelectedNumber);
-		outState.putInt("editMode", mEditMode);
+		outState.putInt("selectedNumber", getSelectedNumber());
+		outState.putInt("editMode", getEditMode().getValue());
 	}
 
 	@Override
 	protected void onRestoreState(StateBundle savedState) {
-		mSelectedNumber = savedState.getInt("selectedNumber", 1);
-		mEditMode = savedState.getInt("editMode", MODE_EDIT_VALUE);
+		setSelectedNumber(savedState.getInt("selectedNumber", 1));
+		editMode = EditMode.valueOf(savedState.getInt("editMode", EditMode.MODE_EDIT_VALUE.getValue()));
 		if (isInputMethodViewCreated()) {
 			update();
 		}

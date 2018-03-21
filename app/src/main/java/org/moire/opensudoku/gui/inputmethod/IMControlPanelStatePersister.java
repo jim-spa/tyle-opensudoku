@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
+import java.util.Map;
+
 /**
  * This class is responsible for persisting of control panel's state.
  *
@@ -27,9 +29,10 @@ public class IMControlPanelStatePersister {
 		cpState.commit();
 
 		// save state of all input methods
-		for (InputMethod im : controlPanel.getInputMethods()) {
-			StateBundle outState = new StateBundle(mPreferences, PREFIX + "" + im.getInputMethodName(), true);
-			im.onSaveState(outState);
+		for (Map.Entry<InputMethod.Type, InputMethod> entry : controlPanel.getInputMethods().entrySet()) {
+			StateBundle outState = new StateBundle(mPreferences, PREFIX + ""
+					+ entry.getValue().getInputMethodName(), true);
+			entry.getValue().onSaveState(outState);
 			outState.commit();
 		}
 	}
@@ -43,9 +46,10 @@ public class IMControlPanelStatePersister {
 		}
 
 		// restore state of all input methods
-		for (InputMethod im : controlPanel.getInputMethods()) {
-			StateBundle savedState = new StateBundle(mPreferences, PREFIX + "" + im.getInputMethodName(), false);
-			im.onRestoreState(savedState);
+		for (Map.Entry<InputMethod.Type, InputMethod> entry : controlPanel.getInputMethods().entrySet()) {
+			StateBundle savedState = new StateBundle(mPreferences, PREFIX + ""
+					+ entry.getValue().getInputMethodName(), false);
+			entry.getValue().onRestoreState(savedState);
 		}
 	}
 
