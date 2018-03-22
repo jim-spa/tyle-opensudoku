@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import android.content.Context;
 import android.net.Uri;
 import org.moire.opensudoku.db.SudokuInvalidFormatException;
 
@@ -14,17 +15,19 @@ import org.moire.opensudoku.db.SudokuInvalidFormatException;
  *
  * @author romario
  */
-public class SdmImportTask extends AbstractImportTask {
+public class SdmImportTask implements ImportProcessor {
 
 	private Uri mUri;
+	private ImportTask importTask;
 
-	public SdmImportTask(Uri uri) {
+	public SdmImportTask(Context context, Uri uri) {
+		importTask = new ImportTask(context, this);
 		mUri = uri;
 	}
 
 	@Override
-	protected void processImport() throws SudokuInvalidFormatException {
-		importFolder(mUri.getLastPathSegment());
+	public void processImport() throws SudokuInvalidFormatException {
+		importTask.importFolder(mUri.getLastPathSegment());
 
 		try {
 			URL url = new URL(mUri.toString());
@@ -35,7 +38,7 @@ public class SdmImportTask extends AbstractImportTask {
 				String s;
 				while ((s = br.readLine()) != null) {
 					if (!s.equals("")) {
-						importGame(s);
+						importTask.importGame(s);
 					}
 				}
 			} finally {
@@ -46,6 +49,11 @@ public class SdmImportTask extends AbstractImportTask {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public void execute() {
+		importTask.execute();
 	}
 
 }
