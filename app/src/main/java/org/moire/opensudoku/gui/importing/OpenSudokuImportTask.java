@@ -12,6 +12,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.net.Uri;
 import org.moire.opensudoku.R;
 import org.moire.opensudoku.db.SudokuImportParams;
@@ -23,20 +24,22 @@ import org.moire.opensudoku.game.SudokuGame;
  *
  * @author romario
  */
-public class OpenSudokuImportTask extends AbstractImportTask {
+public class OpenSudokuImportTask implements ImportProcessor {
 
 	private Uri mUri;
+	private ImportTask importTask;
 
-	public OpenSudokuImportTask(Uri uri) {
+	public OpenSudokuImportTask(Context context, Uri uri) {
+		importTask = new ImportTask(context, this);
 		mUri = uri;
 	}
 
 	@Override
-	protected void processImport() throws SudokuInvalidFormatException {
+	public void processImport() throws SudokuInvalidFormatException {
 		try {
 			InputStreamReader streamReader;
 			if (mUri.getScheme().equals("content")) {
-				ContentResolver contentResolver = mContext.getContentResolver();
+				ContentResolver contentResolver = importTask.getContext().getContentResolver();
 				streamReader = new InputStreamReader(contentResolver.openInputStream(mUri));
 			} else {
 				java.net.URI juri;
@@ -57,6 +60,11 @@ public class OpenSudokuImportTask extends AbstractImportTask {
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public void execute() {
+		importTask.execute();
 	}
 
 	private void importXml(Reader in) throws SudokuInvalidFormatException {
@@ -86,10 +94,10 @@ public class OpenSudokuImportTask extends AbstractImportTask {
 						} else if (version.equals("2")) {
 							importV2(xpp);
 						} else {
-							setError("Unknown version of data.");
+							importTask.setError("Unknown version of data.");
 						}
 					} else {
-						setError(mContext.getString(R.string.invalid_format));
+						importTask.setError(importTask.getContext().getString(R.string.invalid_format));
 						return;
 					}
 				}
@@ -114,7 +122,7 @@ public class OpenSudokuImportTask extends AbstractImportTask {
 				if (lastTag.equals("folder")) {
 					String name = parser.getAttributeValue(null, "name");
 					long created = parseLong(parser.getAttributeValue(null, "created"), System.currentTimeMillis());
-					importFolder(name, created);
+					importTask.importFolder(name, created);
 				} else if (lastTag.equals("game")) {
 					importParams.clear();
 					importParams.created = parseLong(parser.getAttributeValue(null, "created"), System.currentTimeMillis());
@@ -124,7 +132,7 @@ public class OpenSudokuImportTask extends AbstractImportTask {
 					importParams.data = parser.getAttributeValue(null, "data");
 					importParams.note = parser.getAttributeValue(null, "note");
 
-					importGame(importParams);
+					importTask.importGame(importParams);
 				}
 			} else if (eventType == XmlPullParser.END_TAG) {
 				lastTag = "";
@@ -150,13 +158,13 @@ public class OpenSudokuImportTask extends AbstractImportTask {
 			if (eventType == XmlPullParser.START_TAG) {
 				lastTag = parser.getName();
 				if (lastTag.equals("game")) {
-					importGame(parser.getAttributeValue(null, "data"));
+					importTask.importGame(parser.getAttributeValue(null, "data"));
 				}
 			} else if (eventType == XmlPullParser.END_TAG) {
 				lastTag = "";
 			} else if (eventType == XmlPullParser.TEXT) {
 				if (lastTag.equals("name")) {
-					importFolder(parser.getText());
+					importTask.importFolder(parser.getText());
 				}
 
 			}
