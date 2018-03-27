@@ -40,14 +40,12 @@ import org.moire.opensudoku.gui.inputmethod.IMControlPanel;
 import org.moire.opensudoku.gui.inputmethod.InputMethod;
 import org.moire.opensudoku.utils.AndroidUtils;
 
-import static org.moire.opensudoku.gui.inputmethod.InputMethod.Type.*;
-
 /**
  * Activity for editing content of puzzle.
  *
  * @author romario
  */
-public class SudokuEditActivity extends Activity {
+public class SudokuEditActivity extends Activity implements InputMethod.Type {
 
 	/**
 	 * When inserting new data, I need to know folder in which will new sudoku be stored.
@@ -152,8 +150,8 @@ public class SudokuEditActivity extends Activity {
 		for (InputMethod im : mInputMethods.getInputMethods()) {
 			im.setEnabled(false);
 		}
-		mInputMethods.getInputMethod(INPUT_METHOD_NUMPAD.ordinal()).setEnabled(true);
-		mInputMethods.activateInputMethod(INPUT_METHOD_NUMPAD.ordinal());
+		mInputMethods.getInputMethod(INPUT_METHOD_NUMPAD).setEnabled(true);
+		mInputMethods.activateInputMethod(INPUT_METHOD_NUMPAD);
 	}
 
 	@Override

@@ -40,9 +40,7 @@ import org.moire.opensudoku.gui.HintsQueue;
 import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBundle;
 
-import static org.moire.opensudoku.gui.inputmethod.InputMethod.Mode.*;
-
-public class IMNumpad extends InputMethod {
+public class IMNumpad extends InputMethod implements InputMethod.Mode {
 
 	private boolean moveCellSelectionOnPress = true;
 	private boolean mHighlightCompletedValues = true;
@@ -51,7 +49,7 @@ public class IMNumpad extends InputMethod {
 	private Cell mSelectedCell;
 	private ImageButton mSwitchNumNoteButton;
 
-	private Mode mEditMode = MODE_EDIT_VALUE;
+	private int mEditMode = MODE_EDIT_VALUE;
 
 	private Map<Integer, Button> mNumberButtons;
 
@@ -235,12 +233,12 @@ public class IMNumpad extends InputMethod {
 
 	@Override
 	protected void onSaveState(StateBundle outState) {
-		outState.putInt("editMode", mEditMode.ordinal());
+		outState.putInt("editMode", mEditMode);
 	}
 
 	@Override
 	protected void onRestoreState(StateBundle savedState) {
-		mEditMode = Mode.values()[savedState.getInt("editMode", MODE_EDIT_VALUE.ordinal())];
+		mEditMode = savedState.getInt("editMode", MODE_EDIT_VALUE);
 		if (isInputMethodViewCreated()) {
 			update();
 		}
