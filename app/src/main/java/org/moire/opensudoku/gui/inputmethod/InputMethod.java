@@ -172,4 +172,8 @@ public abstract class InputMethod {
 
 	protected void onRestoreState(StateBundle savedState) {
 	}
+
+	public enum Type { INPUT_METHOD_POPUP, INPUT_METHOD_SINGLE_NUMBER, INPUT_METHOD_NUMPAD }
+
+	public enum Mode { MODE_EDIT_VALUE,  MODE_EDIT_NOTE }
 }

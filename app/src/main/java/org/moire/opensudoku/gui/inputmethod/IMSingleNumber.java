@@ -44,6 +44,8 @@ import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.SudokuPlayActivity;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBundle;
 
+import static org.moire.opensudoku.gui.inputmethod.InputMethod.Mode.*;
+
 /**
  * This class represents following type of number input workflow: Number buttons are displayed
  * in the sidebar, user selects one number and then fill values by tapping the cells.
@@ -52,16 +54,13 @@ import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBu
  */
 public class IMSingleNumber extends InputMethod {
 
-	private static final int MODE_EDIT_VALUE = 0;
-	private static final int MODE_EDIT_NOTE = 1;
-
 	private boolean mHighlightCompletedValues = true;
 	private boolean mShowNumberTotals = false;
 	private boolean mBidirectionalSelection = true;
 	private boolean mHighlightSimilar = true;
 
 	private int mSelectedNumber = 1;
-	private int mEditMode = MODE_EDIT_VALUE;
+	private Mode mEditMode = MODE_EDIT_VALUE;
 
 	private Handler mGuiHandler;
 	private Map<Integer, Button> mNumberButtons;
@@ -334,13 +333,13 @@ public class IMSingleNumber extends InputMethod {
 	@Override
 	protected void onSaveState(StateBundle outState) {
 		outState.putInt("selectedNumber", mSelectedNumber);
-		outState.putInt("editMode", mEditMode);
+		outState.putInt("editMode", mEditMode.ordinal());
 	}
 
 	@Override
 	protected void onRestoreState(StateBundle savedState) {
 		mSelectedNumber = savedState.getInt("selectedNumber", 1);
-		mEditMode = savedState.getInt("editMode", MODE_EDIT_VALUE);
+		mEditMode = Mode.values()[savedState.getInt("editMode", MODE_EDIT_VALUE.ordinal())];
 		if (isInputMethodViewCreated()) {
 			update();
 		}
