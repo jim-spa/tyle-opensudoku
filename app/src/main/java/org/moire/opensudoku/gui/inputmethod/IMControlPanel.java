@@ -45,7 +45,6 @@ public class IMControlPanel extends LinearLayout {
 	public static final int INPUT_METHOD_SINGLE_NUMBER = 1;
 	public static final int INPUT_METHOD_NUMPAD = 2;
 
-	private Context mContext;
 	private SudokuBoardView mBoard;
 	private SudokuGame mGame;
 	private HintsQueue mHintsQueue;
@@ -55,12 +54,10 @@ public class IMControlPanel extends LinearLayout {
 
 	public IMControlPanel(Context context) {
 		super(context);
-		mContext = context;
 	}
 
 	public IMControlPanel(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		mContext = context;
 	}
 
 	public void initialize(SudokuBoardView board, SudokuGame game, HintsQueue hintsQueue) {
@@ -222,7 +219,7 @@ public class IMControlPanel extends LinearLayout {
 	}
 
 	private void addInputMethod(int methodIndex, InputMethod im) {
-		im.initialize(mContext, this, mGame, mBoard, mHintsQueue);
+		im.initialize(getContext(), this, mGame, mBoard, mHintsQueue);
 		mInputMethods.add(methodIndex, im);
 	}
 
@@ -265,59 +262,5 @@ public class IMControlPanel extends LinearLayout {
 			activateNextInputMethod();
 		}
 	};
-
-//    /**
-//     * Used to save / restore state of control panel.
-//     */
-//    private static class SavedState extends BaseSavedState {
-//    	private final int mActiveMethodIndex;
-//        private final Bundle mInputMethodsState;
-//    	
-//    	private SavedState(Parcelable superState, int activeMethodIndex, List<InputMethod> inputMethods) {
-//            super(superState);
-//            mActiveMethodIndex = activeMethodIndex;
-//            
-//            mInputMethodsState = new Bundle();
-//            for (InputMethod im : inputMethods) {
-//            	im.onSaveInstanceState(mInputMethodsState);
-//            }
-//        }
-//        
-//        private SavedState(Parcel in) {
-//            super(in);
-//            mActiveMethodIndex = in.readInt();
-//            mInputMethodsState = in.readBundle();
-//        }
-//
-//        public int getActiveMethodIndex() {
-//            return mActiveMethodIndex;
-//        }
-//        
-//        public void restoreInputMethodsState(List<InputMethod> inputMethods) {
-//        	for (InputMethod im : inputMethods) {
-//        		im.onRestoreInstanceState(mInputMethodsState);
-//        	}
-//        }
-//
-//        @Override
-//        public void writeToParcel(Parcel dest, int flags) {
-//            super.writeToParcel(dest, flags);
-//            dest.writeInt(mActiveMethodIndex);
-//            dest.writeBundle(mInputMethodsState);
-//        }
-//
-//        public static final Parcelable.Creator<SavedState> CREATOR
-//                = new Creator<SavedState>() {
-//            public SavedState createFromParcel(Parcel in) {
-//                return new SavedState(in);
-//            }
-//
-//            public SavedState[] newArray(int size) {
-//                return new SavedState[size];
-//            }
-//        };
-//    	
-//    }
-
 
 }
