@@ -49,6 +49,8 @@ import org.moire.opensudoku.db.FolderColumns;
 import org.moire.opensudoku.db.SudokuDatabase;
 import org.moire.opensudoku.game.FolderInfo;
 import org.moire.opensudoku.gui.FolderDetailLoader.FolderDetailCallback;
+import org.moire.opensudoku.gui.importing.HTTPImportTask;
+import org.moire.opensudoku.gui.importing.OnImportProgressListener;
 import org.moire.opensudoku.utils.AndroidUtils;
 import org.walleth.ui.ValueView;
 
@@ -57,7 +59,7 @@ import org.walleth.ui.ValueView;
  *
  * @author romario
  */
-public class FolderListActivity extends AppCompatActivity {
+public class FolderListActivity extends AppCompatActivity implements OnImportProgressListener {
 
     public static final int MENU_ITEM_ADD = Menu.FIRST;
     public static final int MENU_ITEM_RENAME = Menu.FIRST + 1;
@@ -92,24 +94,30 @@ public class FolderListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.folder_list);
-        View getMorePuzzles = findViewById(R.id.get_more_puzzles);
+        //View getMorePuzzles = findViewById(R.id.get_more_puzzles);
 
         setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
         // Inform the list we provide context menus for items
         listView = findViewById(R.id.list_view);
         listView.setOnCreateContextMenuListener(this);
 
-        getMorePuzzles.setOnClickListener(v -> {
+        /*getMorePuzzles.setOnClickListener(v -> {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://opensudoku.moire.org"));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
-            });
+            });*/
 
         ValueView value_view = findViewById(R.id.value_view);
 
         ((OpenSudoku) this.getApplication()).setCurrentBalanceObserver(this, value_view);
         ((OpenSudoku) this.getApplication()).installTransactionObservers(this);
 
+        // TODO not sure where to put this at the moment
+        HTTPImportTask task = new HTTPImportTask(this);
+        task.execute();
+    }
+
+    private void configureView() {
         mDatabase = new SudokuDatabase(getApplicationContext());
         mCursor = mDatabase.getFolderList();
         startManagingCursor(mCursor);
@@ -120,10 +128,10 @@ public class FolderListActivity extends AppCompatActivity {
         adapter.setViewBinder(mFolderListBinder);
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
-                Intent i = new Intent(FolderListActivity.this, SudokuListActivity.class);
-                i.putExtra(SudokuListActivity.EXTRA_FOLDER_ID, id);
-                startActivity(i);
-            });
+            Intent i = new Intent(FolderListActivity.this, SudokuListActivity.class);
+            i.putExtra(SudokuListActivity.EXTRA_FOLDER_ID, id);
+            startActivity(i);
+        });
 
         listView.setAdapter(adapter);
 
@@ -136,7 +144,7 @@ public class FolderListActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        updateList();
+        //updateList();
     }
 
     @Override
@@ -366,6 +374,26 @@ public class FolderListActivity extends AppCompatActivity {
 
     private void updateList() {
         mCursor.requery();
+    }
+
+    @Override
+    public void onImportFinished(boolean importSuccessful, long folderId) {
+        if (importSuccessful) {
+            if (folderId == -1) {
+                // multiple folders were imported, go to folder list
+                configureView();
+            } else {
+                // one folder was imported, go to this folder
+                Intent i = new Intent(this, SudokuListActivity.class);
+                i.putExtra(SudokuListActivity.EXTRA_FOLDER_ID, folderId);
+                startActivity(i);
+            }
+        }
+    }
+
+    @Override
+    public void onImportProgress(Integer... values) {
+
     }
 
     private static class FolderListViewBinder implements ViewBinder {

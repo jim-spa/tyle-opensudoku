@@ -13,13 +13,6 @@ import org.moire.opensudoku.gui.ImportSudokuActivity;
 import org.moire.opensudoku.utils.Const;
 
 /**
- * To add support for new import source, do following:
- * <p/>
- * 1) Subclass this class. Any input parameters specific for your import should be put
- * in constructor of your class.
- * 3) Add code to {@link ImportSudokuActivity} which creates instance of your new class and
- * passes it input parameters.
- * <p/>
  * TODO: add cancel support
  *
  * @author romario
