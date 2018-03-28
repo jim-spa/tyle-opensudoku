@@ -8,11 +8,11 @@ import android.util.Log;
 import android.view.Window;
 import android.widget.ProgressBar;
 import org.moire.opensudoku.R;
-import org.moire.opensudoku.gui.importing.AbstractImportTask;
 import org.moire.opensudoku.gui.importing.ExtrasImportTask;
+import org.moire.opensudoku.gui.importing.ImportProcessor;
+import org.moire.opensudoku.gui.importing.OnImportProgressListener;
 import org.moire.opensudoku.gui.importing.OpenSudokuImportTask;
 import org.moire.opensudoku.gui.importing.SdmImportTask;
-import org.moire.opensudoku.gui.importing.AbstractImportTask.OnImportFinishedListener;
 import org.moire.opensudoku.utils.Const;
 
 /**
@@ -21,7 +21,7 @@ import org.moire.opensudoku.utils.Const;
  *
  * @author romario
  */
-public class SudokuImportActivity extends Activity {
+public class SudokuImportActivity extends Activity implements OnImportProgressListener {
 	/**
 	 * Name of folder to which games should be imported.
 	 */
@@ -39,6 +39,8 @@ public class SudokuImportActivity extends Activity {
 
 	private static final String TAG = "ImportSudokuActivity";
 
+	private ProgressBar progressBar;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -48,20 +50,20 @@ public class SudokuImportActivity extends Activity {
 		getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON,
 				R.mipmap.ic_launcher);
 
-		ProgressBar progressBar = (ProgressBar) findViewById(R.id.progress);
+		progressBar = findViewById(R.id.progress);
 
-		AbstractImportTask importTask;
+		ImportProcessor processor;
 		Intent intent = getIntent();
 		Uri dataUri = intent.getData();
 		if (dataUri != null) {
 			if (Const.MIME_TYPE_OPENSUDOKU.equals(intent.getType())
 					|| dataUri.toString().endsWith(".opensudoku")) {
 
-				importTask = new OpenSudokuImportTask(dataUri);
+				processor = new OpenSudokuImportTask(this, dataUri);
 
 			} else if (dataUri.toString().endsWith(".sdm")) {
 
-				importTask = new SdmImportTask(dataUri);
+				processor = new SdmImportTask(this, dataUri);
 
 			} else {
 
@@ -80,7 +82,7 @@ public class SudokuImportActivity extends Activity {
 			String games = intent.getStringExtra(EXTRA_GAMES);
 			boolean appendToFolder = intent.getBooleanExtra(
 					EXTRA_APPEND_TO_FOLDER, false);
-			importTask = new ExtrasImportTask(folderName, games, appendToFolder);
+			processor = new ExtrasImportTask(this, folderName, games, appendToFolder);
 
 		} else {
 			Log.e(TAG, "No data provided, exiting.");
@@ -88,33 +90,35 @@ public class SudokuImportActivity extends Activity {
 			return;
 		}
 
-		importTask.initialize(this, progressBar);
-		importTask.setOnImportFinishedListener(mOnImportFinishedListener);
-
-		importTask.execute();
+		processor.execute();
 	}
 
-	private OnImportFinishedListener mOnImportFinishedListener = new OnImportFinishedListener() {
-
-		@Override
-		public void onImportFinished(boolean importSuccessful, long folderId) {
-			if (importSuccessful) {
-				if (folderId == -1) {
-					// multiple folders were imported, go to folder list
-					Intent i = new Intent(SudokuImportActivity.this,
-							FolderListActivity.class);
-					startActivity(i);
-				} else {
-					// one folder was imported, go to this folder
-					Intent i = new Intent(SudokuImportActivity.this,
-							SudokuListActivity.class);
-					i.putExtra(SudokuListActivity.EXTRA_FOLDER_ID, folderId);
-					startActivity(i);
-				}
+	@Override
+	public void onImportFinished(boolean importSuccessful, long folderId) {
+		if (importSuccessful) {
+			if (folderId == -1) {
+				// multiple folders were imported, go to folder list
+				Intent i = new Intent(SudokuImportActivity.this,
+						FolderListActivity.class);
+				startActivity(i);
+			} else {
+				// one folder was imported, go to this folder
+				Intent i = new Intent(SudokuImportActivity.this,
+						SudokuListActivity.class);
+				i.putExtra(SudokuListActivity.EXTRA_FOLDER_ID, folderId);
+				startActivity(i);
 			}
-			// call finish, so this activity won't be part of history
-			finish();
 		}
-	};
+		// call finish, so this activity won't be part of history
+		finish();
+	}
+
+	@Override
+	public void onImportProgress(Integer... values) {
+		if (values.length == 2) {
+			progressBar.setMax(values[1]);
+		}
+		progressBar.setProgress(values[0]);
+	}
 
 }
