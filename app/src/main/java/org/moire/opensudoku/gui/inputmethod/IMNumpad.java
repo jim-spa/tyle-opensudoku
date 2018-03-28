@@ -40,7 +40,9 @@ import org.moire.opensudoku.gui.HintsQueue;
 import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBundle;
 
-public class IMNumpad extends InputMethod implements InputMethod.Mode {
+import static org.moire.opensudoku.gui.inputmethod.InputMethod.Mode.*;
+
+public class IMNumpad extends InputMethod {
 
 	private boolean moveCellSelectionOnPress = true;
 	private boolean mHighlightCompletedValues = true;

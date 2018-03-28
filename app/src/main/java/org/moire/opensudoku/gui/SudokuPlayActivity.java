@@ -50,13 +50,14 @@ import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister;
 import org.moire.opensudoku.gui.inputmethod.IMNumpad;
 import org.moire.opensudoku.gui.inputmethod.IMPopup;
 import org.moire.opensudoku.gui.inputmethod.IMSingleNumber;
-import org.moire.opensudoku.gui.inputmethod.InputMethod;
 import org.moire.opensudoku.utils.AndroidUtils;
 import org.walleth.ui.ValueView;
 
+import static org.moire.opensudoku.gui.inputmethod.InputMethod.Type.*;
+
 /*
  */
-public class SudokuPlayActivity extends FragmentActivity implements InputMethod.Type {
+public class SudokuPlayActivity extends FragmentActivity {
 
     public static final String EXTRA_SUDOKU_ID = "sudoku_id";
 

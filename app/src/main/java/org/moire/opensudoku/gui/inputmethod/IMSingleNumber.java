@@ -44,13 +44,15 @@ import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.SudokuPlayActivity;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBundle;
 
+import static org.moire.opensudoku.gui.inputmethod.InputMethod.Mode.*;
+
 /**
  * This class represents following type of number input workflow: Number buttons are displayed
  * in the sidebar, user selects one number and then fill values by tapping the cells.
  *
  * @author romario
  */
-public class IMSingleNumber extends InputMethod implements InputMethod.Mode {
+public class IMSingleNumber extends InputMethod {
 
 	private boolean mHighlightCompletedValues = true;
 	private boolean mShowNumberTotals = false;
