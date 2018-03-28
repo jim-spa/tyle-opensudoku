@@ -53,6 +53,8 @@ import org.moire.opensudoku.gui.inputmethod.IMSingleNumber;
 import org.moire.opensudoku.utils.AndroidUtils;
 import org.walleth.ui.ValueView;
 
+import static org.moire.opensudoku.gui.inputmethod.InputMethod.Type.*;
+
 /*
  */
 public class SudokuPlayActivity extends FragmentActivity {
@@ -167,9 +169,9 @@ public class SudokuPlayActivity extends FragmentActivity {
 
         mIMControlPanelStatePersister = new IMControlPanelStatePersister(this);
 
-        mIMPopup = mIMControlPanel.getInputMethod(IMControlPanel.INPUT_METHOD_POPUP);
-        mIMSingleNumber = mIMControlPanel.getInputMethod(IMControlPanel.INPUT_METHOD_SINGLE_NUMBER);
-        mIMNumpad = mIMControlPanel.getInputMethod(IMControlPanel.INPUT_METHOD_NUMPAD);
+        mIMPopup = mIMControlPanel.getInputMethod(INPUT_METHOD_POPUP);
+        mIMSingleNumber = mIMControlPanel.getInputMethod(INPUT_METHOD_SINGLE_NUMBER);
+        mIMNumpad = mIMControlPanel.getInputMethod(INPUT_METHOD_NUMPAD);
 
         Cell cell = mSudokuGame.getLastChangedCell();
         if (cell != null)

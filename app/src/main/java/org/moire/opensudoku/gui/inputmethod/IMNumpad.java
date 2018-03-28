@@ -40,14 +40,13 @@ import org.moire.opensudoku.gui.HintsQueue;
 import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.inputmethod.IMControlPanelStatePersister.StateBundle;
 
+import static org.moire.opensudoku.gui.inputmethod.InputMethod.Mode.*;
+
 public class IMNumpad extends InputMethod {
 
 	private boolean moveCellSelectionOnPress = true;
 	private boolean mHighlightCompletedValues = true;
 	private boolean mShowNumberTotals = false;
-
-	private static final int MODE_EDIT_VALUE = 0;
-	private static final int MODE_EDIT_NOTE = 1;
 
 	private Cell mSelectedCell;
 	private ImageButton mSwitchNumNoteButton;

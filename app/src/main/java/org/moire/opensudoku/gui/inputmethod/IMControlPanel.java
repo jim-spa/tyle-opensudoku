@@ -37,13 +37,12 @@ import org.moire.opensudoku.gui.SudokuBoardView;
 import org.moire.opensudoku.gui.SudokuBoardView.OnCellSelectedListener;
 import org.moire.opensudoku.gui.SudokuBoardView.OnCellTappedListener;
 
+import static org.moire.opensudoku.gui.inputmethod.InputMethod.Type.*;
+
 /**
  * @author romario
  */
 public class IMControlPanel extends LinearLayout {
-	public static final int INPUT_METHOD_POPUP = 0;
-	public static final int INPUT_METHOD_SINGLE_NUMBER = 1;
-	public static final int INPUT_METHOD_NUMPAD = 2;
 
 	private SudokuBoardView mBoard;
 	private SudokuGame mGame;

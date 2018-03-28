@@ -172,4 +172,15 @@ public abstract class InputMethod {
 
 	protected void onRestoreState(StateBundle savedState) {
 	}
+
+	public interface Type {
+		int INPUT_METHOD_POPUP = 0;
+		int INPUT_METHOD_SINGLE_NUMBER = 1;
+		int INPUT_METHOD_NUMPAD = 2;
+	}
+
+	public interface Mode {
+		int MODE_EDIT_VALUE = 0;
+		int MODE_EDIT_NOTE = 1;
+	}
 }

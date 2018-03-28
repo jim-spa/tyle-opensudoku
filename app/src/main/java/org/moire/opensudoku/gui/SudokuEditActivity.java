@@ -40,6 +40,8 @@ import org.moire.opensudoku.gui.inputmethod.IMControlPanel;
 import org.moire.opensudoku.gui.inputmethod.InputMethod;
 import org.moire.opensudoku.utils.AndroidUtils;
 
+import static org.moire.opensudoku.gui.inputmethod.InputMethod.Type.*;
+
 /**
  * Activity for editing content of puzzle.
  *
@@ -150,8 +152,8 @@ public class SudokuEditActivity extends Activity {
 		for (InputMethod im : mInputMethods.getInputMethods()) {
 			im.setEnabled(false);
 		}
-		mInputMethods.getInputMethod(IMControlPanel.INPUT_METHOD_NUMPAD).setEnabled(true);
-		mInputMethods.activateInputMethod(IMControlPanel.INPUT_METHOD_NUMPAD);
+		mInputMethods.getInputMethod(INPUT_METHOD_NUMPAD).setEnabled(true);
+		mInputMethods.activateInputMethod(INPUT_METHOD_NUMPAD);
 	}
 
 	@Override
